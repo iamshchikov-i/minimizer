@@ -2,7 +2,7 @@
 
 #include "gtest.h"
 
-const double eps = 0.1;
+const double eps = 0.001;
 
 double f1(double x) {
 	return pow(x - 5.46, 2) + 9;
@@ -130,7 +130,7 @@ TEST(minimizer, test_f4_1) {
 	double(*fptr)(double) = f4;
 	Minimizer m(-10.2, 10.2, fptr);
 	delta = abs(abs(m.find_point()) - 1.0);
-
+	
 	EXPECT_EQ(1, delta <= eps);
 }
 
@@ -155,9 +155,9 @@ TEST(minimizer, test_f4_3) {
 TEST(minimizer, test_f5_1) {
 	double delta;
 	double(*fptr)(double) = f5;
-	Minimizer m(0.0, 1.0, fptr);
-	delta = abs(abs(m.find_point()) - 0.803);
-
+	Minimizer m(0.0, 1.0, fptr, 0.0001);
+	delta = abs(abs(m.find_point()) - 0.8028);
+	
 	EXPECT_EQ(1, delta <= eps);
 }
 
