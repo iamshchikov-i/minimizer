@@ -1,36 +1,36 @@
-#include "minimizer.h"
+#include "minimizer_v1.h"
 
-Minimizer::Minimizer(double _a, double _b, double(*f)(double x), double _eps, int _N_max, double _r_par): a(_a), b(_b), function(f),
+Minimizer_v1::Minimizer_v1(double _a, double _b, double(*f)(double x), double _eps, int _N_max, double _r_par): a(_a), b(_b), function(f),
 																										eps(_eps), N_max(_N_max), r_p(_r_par) {
 	k = 0;
 	values = new std::map<double, double>;
 }
 
-bool Minimizer::stop1() {
+bool Minimizer_v1::stop1() {
 	return k >= N_max;
 }
 
-bool Minimizer::stop2() {
+bool Minimizer_v1::stop2() {
 	for (reset(); r != values->end(); go_Next_Interval())
 		if (abs((*r).first - (*l).first) <= eps)
 			return true;
 	return false;
 }
 
-void Minimizer::reset() {
+void Minimizer_v1::reset() {
 	l = values->begin();
 	r = l; r++;
 }
 
-void Minimizer::go_Next_Interval() {
+void Minimizer_v1::go_Next_Interval() {
 	l++; r++;
 }
 
-double Minimizer::get_M() {
+double Minimizer_v1::get_M() {
 	return abs(((*r).second - (*l).second) / ((*r).first - (*l).first));
 }
 
-double Minimizer::get_M_Max() {
+double Minimizer_v1::get_M_Max() {
 	double M_max, tmp;
 	reset();
 	M_max = get_M();
@@ -44,16 +44,16 @@ double Minimizer::get_M_Max() {
 	return M_max;
 }
 
-double Minimizer::get_R(double m) {
+double Minimizer_v1::get_R(double m) {
 	double tmp = m * ((*r).first - (*l).first);
 	return tmp + (pow((*r).second - (*l).second, 2) / tmp) - 2 * ((*r).second + (*l).second);
 }
 
-bool Minimizer::isEnd() {
+bool Minimizer_v1::isEnd() {
 	return stop1() || stop2();
 }
 
-double Minimizer::get_m() {
+double Minimizer_v1::get_m() {
 	double tmp = get_M_Max();
 	if (tmp > 0)
 		return r_p * tmp;
@@ -63,7 +63,7 @@ double Minimizer::get_m() {
 		throw - 1;
 }
 
-std::pair<double, double> Minimizer::find_R_Max(double m) {
+std::pair<double, double> Minimizer_v1::find_R_Max(double m) {
 	std::pair<double, double> res;
 	double R_max, tmp;
 	reset();
@@ -83,11 +83,11 @@ std::pair<double, double> Minimizer::find_R_Max(double m) {
 	return res;
 }
 
-double Minimizer::get_new_point(std::pair<double, double> p, double m) {
+double Minimizer_v1::get_new_point(std::pair<double, double> p, double m) {
 	return 0.5*(p.first + p.second) - ((*function)(p.second) - (*function)(p.first)) / (2 * m);
 }
 
-double Minimizer::find_point() {
+double Minimizer_v1::find_point() {
 	std::pair<double, double> new_point;
 	double _min, res;
 

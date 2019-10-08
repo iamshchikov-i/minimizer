@@ -1,11 +1,12 @@
-#ifndef __MINIMIZER_H__
-#define __MINIMIZER_H__
+#ifndef __MINIMIZER_v_1__H__
+#define __MINIMIZER_v_1__H__
 
 #include <cmath>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
-class Minimizer {
+class Minimizer_v1 {
 private:
 	int k; 
 	double min;  
@@ -28,7 +29,7 @@ protected:
 	double get_M_Max();
 	double get_R(double m);
 public:
-	Minimizer(double _a, double _b, double (*f)(double x), double _eps = 0.001, int _N_max = 10000, double _r_par = 1.3);
+	Minimizer_v1(double _a, double _b, double (*f)(double x), double _eps = 0.001, int _N_max = 10000, double _r_par = 2.0);
 	bool isEnd();
 	double get_m();
 	std::pair<double, double> find_R_Max(double m);
