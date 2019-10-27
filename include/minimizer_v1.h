@@ -29,7 +29,7 @@ protected:
 	double get_M_Max();
 	double get_R(double m);
 public:
-	Minimizer_v1(double _a, double _b, double (*f)(double x), double _eps = 0.001, int _N_max = 10000, double _r_par = 2.0);
+	Minimizer_v1(double _a, double _b, double (*f)(double x), double _eps = 0.001, int _N_max = 500, double _r_par = 2.0);
 	bool isEnd();
 	double get_m();
 	std::pair<double, double> find_R_Max(double m);

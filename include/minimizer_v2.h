@@ -65,8 +65,8 @@ protected:
 	double get_new_point(interval i);
 	void delete_containers();
 public:
-	Minimizer_v2(double _a, double _b, double (*f)(double x), double _eps = 0.01, int _N_max = 500, double _r_par = 2.0);
-	void set_experiment(const double _a, const double _b, double(*f)(double x), const double _eps = 0.01, const int _N_max = 500, const double _r_par = 2.0);
+	Minimizer_v2(double _a, double _b, double (*f)(double x), double _eps = 0.001, int _N_max = 500, double _r_par = 2.0);
+	void set_experiment(const double _a, const double _b, double(*f)(double x), const double _eps = 0.001, const int _N_max = 500, const double _r_par = 2.0);
 	result solve();
 };
 
