@@ -42,6 +42,7 @@ private:
 	double r_p; 
 	double eps; 
 	int N_max;
+	double M_Max;
 	double min_interval_length;
 	std::map<double, characteristics>* values;
 	std::map<double, characteristics>::iterator left_point;
@@ -56,12 +57,12 @@ protected:
 	void go_new_left_interval(double new_point);
 	void reset();
 	double get_M();
-	double get_M_Max();
 	double get_R();
 	void calculate_R(double new_point, double new_m);
 	double get_m();
 	void insert_to_map(double _x, double _y, double _R);
 	void compare_interval_len(double new_point);
+	void compare_M(double new_point);
 	double get_new_point(interval i);
 	void delete_containers();
 public:

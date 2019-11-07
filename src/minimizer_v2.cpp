@@ -43,20 +43,6 @@ double Minimizer_v2::get_M() {
 	return abs(((*right_point).second.y - (*left_point).second.y) / ((*right_point).first - (*left_point).first));
 }
 
-double Minimizer_v2::get_M_Max() {
-	double M_max, tmp;
-	reset();
-	M_max = get_M();
-	go_Next_Interval();
-
-	for (; right_point != values->end(); go_Next_Interval()) {
-		tmp = get_M();
-		if (tmp >= M_max)
-			M_max = tmp;
-	}
-	return M_max;
-}
-
 double Minimizer_v2::get_R() {
 	double tmp = m * ((*right_point).first - (*left_point).first);
 	return tmp + (pow((*right_point).second.y - (*left_point).second.y, 2) / tmp) - 2 * ((*right_point).second.y + (*left_point).second.y);
@@ -85,10 +71,9 @@ void Minimizer_v2::calculate_R(double new_point, double new_m) {
 }
 
 double Minimizer_v2::get_m() {
-	double tmp = get_M_Max();
-	if (tmp > 0)
-		return r_p * tmp;
-	else if (tmp == 0)
+	if (M_Max > 0)
+		return r_p * M_Max;
+	else if (M_Max == 0)
 		return 1;
 	else
 		throw - 1;
@@ -110,6 +95,16 @@ void Minimizer_v2::compare_interval_len(double new_point) {
 		interval_length = (*right_point).first - (*left_point).first;
 		if (interval_length < min_interval_length)
 			min_interval_length = interval_length;
+	}
+}
+
+void Minimizer_v2::compare_M(double new_point) {
+	go_new_left_interval(new_point);
+	double M;
+	for (int i = 0;i < 2;++i, go_Next_Interval()) {
+		M = get_M();
+		if (M >= M_Max)
+			M_Max = M;
 	}
 }
 
@@ -148,6 +143,8 @@ result Minimizer_v2::solve() {
 	insert_to_map(a, (*function)(a), 0);
 	res.x = a; res.y = (*function)(a);
 	insert_to_map(b, (*function)(b), 0);
+	reset();
+	M_Max = get_M();
 	m = -1;
 	pq->push(interval(a, b, 0));
 	res.k = 2;
@@ -160,6 +157,7 @@ result Minimizer_v2::solve() {
 		insert_to_map(new_point.first, new_point.second, 0);
 		res.k++; 
 		compare_interval_len(new_point.first);
+		compare_M(new_point.first);
 	}
 	delete_containers();
 	return res;
