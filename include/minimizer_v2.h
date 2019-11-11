@@ -35,21 +35,22 @@ struct CompareR {
 
 class Minimizer_v2 {
 private:
-	result res;
-	double a;  
-	double b;
-	double m; 
 	double r_p; 
-	double eps; 
 	int N_max;
-	double M_Max;
-	double min_interval_length;
-	std::map<double, characteristics>* values;
+	
 	std::map<double, characteristics>::iterator left_point;
 	std::map<double, characteristics>::iterator right_point;
-	std::priority_queue<interval, std::vector<interval>, CompareR>* pq;
-	double(*function) (double _x);
 protected:
+	double eps;
+	result res;
+	double a;
+	double b;
+	double(*function) (double _x);
+	double min_interval_length;
+	double m;
+	double M_Max;
+	std::map<double, characteristics>* values;
+	std::priority_queue<interval, std::vector<interval>, CompareR>* pq;
 	bool stop1();
 	bool stop2();
 	bool isEnd();

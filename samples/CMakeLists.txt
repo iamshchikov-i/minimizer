@@ -9,6 +9,9 @@ foreach(sample_filename ${samples_list})
   # Add and configure executable file to be produced
   add_executable(${sample} ${sample_filename})
   target_link_libraries(${sample} ${MP2_LIBRARY})
+  if( USE_MPI )
+	target_link_libraries(${sample} ${MPI_LIBRARIES})
+  endif( USE_MPI )
   set_target_properties(${sample} PROPERTIES
     OUTPUT_NAME "${sample}"
     PROJECT_LABEL "${sample}"

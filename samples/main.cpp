@@ -1,21 +1,22 @@
 #include <chrono>
 #include "minimizer_v1.h"
 #include "minimizer_v2.h"
+#include "minimizer_v3.h"
 #include "functions.h"
 
-int main() {
+void measure_time_v1_v2() {
 	std::vector<std::pair<double, double> > bord(6);
 	bord[0] = { -15.0, 8.0 };  bord[1] = { -10.0, 5.0 }; bord[2] = { 0.12, 10.0 };
 	bord[3] = { -10.2, 10.2 }; bord[4] = { 0.0, 0.1 };   bord[5] = { 0.1, 10.57 };
 	std::chrono::milliseconds r1{ 0 }, r2{ 0 }, elapsed_ms;
 	std::chrono::time_point<std::chrono::steady_clock> begin, end;
 	double(*fptr[6])(double) = { f1,f2,f3,f4,f5,f6 };
-	
+
 	std::cout << "Via Minimizer_v1: " << std::endl;
 	for (int i = 0;i < 6;++i) {
 		Minimizer_v1 m(bord[i].first, bord[i].second, fptr[i]);
 		begin = std::chrono::steady_clock::now();
-		std::cout<<"x* of f"<<i<< " = "<< m.find_point() << std::endl;
+		std::cout << "x* of f" << i << " = " << m.find_point() << std::endl;
 		end = std::chrono::steady_clock::now();
 		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 		r1 += elapsed_ms;
@@ -33,6 +34,17 @@ int main() {
 		r2 += elapsed_ms;
 	}
 	std::cout << "Total time 2: " << r2.count() << " ms\n";
+}
 
+int main(int argc, char** argv) {
+
+    MPI_Init(&argc, &argv);
+
+	double delta;
+	double(*fptr)(double) = f1;
+	Minimizer_v3 m(-15, 8, fptr);
+	std::cout<<"res is "<< m.solve().x << std::endl;
+
+	MPI_Finalize();
 	return 0;
 }

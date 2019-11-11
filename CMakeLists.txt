@@ -21,6 +21,21 @@ set(MP2_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 include_directories("${MP2_INCLUDE}" gtest)
 
+################################ MPI ################################
+option(USE_MPI OFF)
+if( USE_MPI )
+    find_package( MPI )
+    if( MPI_FOUND )
+        include_directories( ${MPI_INCLUDE_PATH} )
+		set(CMAKE_C_FLAGS "${CMAKE_FLAGS} ${MPI_FLAGS}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_FLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_EXE_LINKER_FLAGS}")
+    else( MPI_FOUND )
+        set( USE_MPI OFF )
+    endif( MPI_FOUND )
+endif( USE_MPI )
+
+
 # BUILD
 add_subdirectory(src)
 add_subdirectory(samples)
