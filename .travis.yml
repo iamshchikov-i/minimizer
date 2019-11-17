@@ -8,7 +8,7 @@ before_script:
   - mkdir ../build
   - cd ../build
 script:
-  - cmake ../minimizer
+  - cmake -D USE_MPI=ON ../minimizer
   - make -j
   - cd ./bin/
   - ./test_minimizer --gtest_list_tests
