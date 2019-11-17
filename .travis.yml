@@ -1,6 +1,6 @@
 language: cpp
 install:
-  - sudo apt-get install libcr-dev mpich2 mpich2-doc
+  - sudo apt-get install mpich libmpich-dev
 compiler:
   - gcc
   - clang
