@@ -13,14 +13,17 @@ class Minimizer_v3 : public Minimizer_v2 {
 private:
 	int procrank;
 	int procnum;
-	int curr_involved_procnum;
-	MPI_Comm involved_comm, waiting_comm;
 protected:
-	void calc_involved_procnum(int queue_size);
-	void set_comm();
+	void do_first_iteration();
+	void do_first_parallel_iteration(std::vector<double>& recvbuf, std::vector<double>& data, std::pair<double, double>& new_point);
 public:
+	int get_procnum();
+	int get_rank();
+	double get_new_point(interval i);
+	result get_result();
 	Minimizer_v3(double _a, double _b, double(*f)(double x), double _eps = 0.001, int _N_max = 500, double _r_par = 2.0);
-	result solve();
+	void set_experiment(const double _a, const double _b, double(*f)(double x), const double _eps = 0.001, const int _N_max = 500, const double _r_par = 2.0);
+	void solve();
 };
 
 #endif

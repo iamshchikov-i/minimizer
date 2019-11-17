@@ -35,12 +35,11 @@ struct CompareR {
 
 class Minimizer_v2 {
 private:
-	double r_p; 
-	int N_max;
-	
 	std::map<double, characteristics>::iterator left_point;
 	std::map<double, characteristics>::iterator right_point;
 protected:
+	double r_p;
+	int N_max;
 	double eps;
 	result res;
 	double a;
