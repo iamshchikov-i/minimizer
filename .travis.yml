@@ -1,12 +1,9 @@
 language: cpp
+install:
+  - sudo apt-get install libcr-dev mpich mpich-doc
 compiler:
   - gcc
   - clang
-cache:
-  directories:
-  - mpich
-before_install:
-  - sh ./get_mpich.sh
 before_script:
   - mkdir ../build
   - cd ../build
