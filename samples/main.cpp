@@ -1,5 +1,4 @@
 #include <chrono>
-#include "windows.h"
 #include "minimizer_v1.h"
 #include "minimizer_v2.h"
 #include "minimizer_v3.h"

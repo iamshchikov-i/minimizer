@@ -1,7 +1,7 @@
 #ifndef __MINIMIZER_v_3_H__
 #define __MINIMIZER_v_3_H__
 
-#include <mpi.h>
+#include "mpi.h"
 #include <cmath>
 #include <map>
 #include <queue>
