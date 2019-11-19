@@ -8,6 +8,7 @@ script:
 - mkdir ../build
 - cd ../build
 - cmake ../minimizer
+- make -j
 - cd ./bin/
 - ./test_minimizer --gtest_list_tests
 notifications:
