@@ -21,10 +21,10 @@ struct characteristics {
 };
 
 struct interval {
-	double first_point;
-	double second_point;
+	std::pair<double, double> first_point;
+	std::pair<double, double> second_point;
 	characteristics _ch;
-	interval(double _f_point, double _s_point, double _R);
+	interval(std::pair<double, double> _f_point, std::pair<double, double> _s_point, double _R);
 };
 
 struct CompareR {
@@ -34,10 +34,9 @@ struct CompareR {
 };
 
 class Minimizer_v2 {
-private:
+protected:
 	std::map<double, characteristics>::iterator left_point;
 	std::map<double, characteristics>::iterator right_point;
-protected:
 	double r_p;
 	int N_max;
 	double eps;

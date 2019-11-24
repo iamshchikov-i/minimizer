@@ -20,7 +20,7 @@ void Minimizer_v3::do_first_iteration() {
 
 	M_Max = get_M();
 	m = -1;
-	pq->push(interval(a, b, 0));
+	pq->push(interval({ (*left_point).first, (*left_point).second.y }, { (*right_point).first, (*right_point).second.y }, 0));
 	res.k = 2;
 }
 
@@ -45,10 +45,6 @@ void Minimizer_v3::do_first_parallel_iteration(std::vector<double>& recvbuf, std
 		compare_M(recvbuf[2 * i]);
 		res.k++;
 	}
-}
-
-double Minimizer_v3::get_new_point(interval i) {
-	return 0.5*(i.first_point + i.second_point) - ((*function)(i.second_point) - (*function)(i.first_point)) / (2 * m);
 }
 
 int Minimizer_v3::get_rank() {

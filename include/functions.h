@@ -2,6 +2,9 @@
 #define __FUNCTIONS_H__
 
 #include <cmath>
+#include <vector>
+#include <random>
+#include <ctime>
 
 double f1(double x);
 

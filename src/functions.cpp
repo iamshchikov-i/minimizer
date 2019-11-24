@@ -1,7 +1,19 @@
 #include "functions.h"
 
 double f1(double x) {
-	return pow(x - 5.46, 2) + 9;
+	int size = 1000000;
+	double h = 0;
+	std::mt19937 gen;
+	gen.seed(static_cast<unsigned int>(time(0)));
+	std::vector<int> v(size);
+	v.assign(size, 2);
+	
+	for (int i = 0; i < size/20; i++) {
+		h += pow(sin(v.at(gen() % size)), 2) + pow(cos(v.at(gen() % size)), 2);
+		h -= log2(v.at(gen() % size));
+	}
+
+	return pow(x - 5.46, 2) + 9 + h;
 }
 
 double f2(double x) {
@@ -9,7 +21,6 @@ double f2(double x) {
 }
 
 double f3(double x) {
-
 	return pow(x, 3) - 6 * pow(x, 2) + 9 * x - 4;
 }
 

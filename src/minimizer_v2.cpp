@@ -4,7 +4,7 @@ characteristics::characteristics(double _y, double _R): y(_y), R(_R) {}
 
 characteristics::characteristics(double _R): R(_R) {}
 
-interval::interval(double _f_point, double _s_point, double _R) : first_point(_f_point), second_point(_s_point), _ch(_R) {}
+interval::interval(std::pair<double, double> _f_point, std::pair<double, double> _s_point, double _R) : first_point(_f_point), second_point(_s_point), _ch(_R) {}
 
 Minimizer_v2::Minimizer_v2(double _a, double _b, double(*f)(double x), double _eps, int _N_max, double _r_par): a(_a), b(_b), function(f),
 																										eps(_eps), N_max(_N_max), r_p(_r_par) {
@@ -58,14 +58,16 @@ void Minimizer_v2::calculate_R(double new_point, double new_m) {
 		reset();
 		for (; right_point != values->end(); go_Next_Interval()) {
 			(*left_point).second.R = get_R();
-			pq->push(interval((*left_point).first, (*right_point).first, (*left_point).second.R));
+			pq->push(interval({ (*left_point).first, (*left_point).second.y },
+				{ (*right_point).first, (*right_point).second.y }, (*left_point).second.R) );
 		}
 	}
 	else {
 		go_new_left_interval(new_point);
 		for (int i = 0;i < 2;++i, go_Next_Interval()) {
 			(*left_point).second.R = get_R();
-			pq->push(interval((*left_point).first, (*right_point).first, (*left_point).second.R));
+			pq->push(interval({ (*left_point).first, (*left_point).second.y }, 
+				{ (*right_point).first, (*right_point).second.y }, (*left_point).second.R));
 		}
 	}
 }
@@ -109,7 +111,7 @@ void Minimizer_v2::compare_M(double new_point) {
 }
 
 double Minimizer_v2::get_new_point(interval i) {
-	return 0.5*(i.first_point + i.second_point) - ((*function)(i.second_point) - (*function)(i.first_point)) / (2 * m);
+	return 0.5*(i.first_point.first + i.second_point.first) - ((i.second_point.second) - i.first_point.second) / (2 * m);
 }
 
 void Minimizer_v2::delete_containers() {
@@ -146,7 +148,7 @@ result Minimizer_v2::solve() {
 	reset();
 	M_Max = get_M();
 	m = -1;
-	pq->push(interval(a, b, 0));
+	pq->push(interval({(*left_point).first, (*left_point).second.y }, { (*right_point).first, (*right_point).second.y }, 0));
 	res.k = 2;
 
 	while (!isEnd()) {
