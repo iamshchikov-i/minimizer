@@ -2,6 +2,7 @@
 #define __MINIMIZER_v_3_H__
 
 #include "mpi.h"
+#include <chrono>
 #include <cmath>
 #include <map>
 #include <queue>
@@ -11,6 +12,7 @@
 
 class Minimizer_v3 : public Minimizer_v2 {
 private:
+	std::chrono::milliseconds time_of_allgather;
 	int procrank;
 	int procnum;
 protected:

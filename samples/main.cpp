@@ -4,6 +4,24 @@
 #include "minimizer_v3.h"
 #include "functions.h"
 
+void set_bords(std::vector<double>& bord) {
+	bord[0] = -15.0; bord[1] = 8.0; bord[2] = 6.36; bord[3] = 20.0; bord[4] = -7.56; bord[5] = -1.92;
+	bord[6] = -2.0; bord[7] = 5.0; bord[8] = -0.21; bord[9] = 10.0; bord[10] = -7.56; bord[11] = -1.92;
+	bord[12] = 0.12; bord[13] = 10.0; bord[14] = 4.23; bord[15] = 10.0; bord[16] = -5.78; bord[17] = -1.92;
+	bord[18] = -10.2; bord[19] = 10.2; bord[20] = 0.12; bord[21] = 0.98; bord[22] = -19.2; bord[23] = -5.87;
+	bord[24] = 0.0; bord[25] = 1.0; bord[26] = 0.923; bord[27] = 1.338; bord[28] = -1.806; bord[29] = -1.448;
+	bord[30] = 0.1; bord[31] = 10.57; bord[32] = 0.1; bord[33] = 1.298; bord[34] = 10.53; bord[35] = 19.23;
+}
+
+void set_actual_values(std::vector<double>& values) {
+	values[0] = 5.46; values[1] = 6.36; values[2] = 1.92;
+	values[3] = 0.5; values[4] = 0.21; values[5] = 1.92;
+	values[6] = 3.0; values[7] = 4.23; values[8] = 5.78;
+	values[9] = 1.0; values[10] = 0.12; values[11] = 5.87;
+	values[12] = 0.8028; values[13] = 0.923; values[14] = 1.448;
+	values[15] = 1.353; values[16] = 1.298; values[17] = 10.53;
+}
+
 void measure_time_v1_v2() {
 	std::vector<std::pair<double, double> > bord(6);
 	bord[0] = { -15.0, 8.0 };  bord[1] = { -10.0, 5.0 }; bord[2] = { 0.12, 10.0 };
@@ -49,27 +67,20 @@ void measure_time_of_function(double(*f)(double x)) {
 
 void measure_time_v2_v3() {
 	int rank;
+	result res;
 	std::pair<double, double> bord;
 	std::chrono::milliseconds elapsed_ms;
 	std::chrono::time_point<std::chrono::steady_clock> begin, end;
 	bord = { -15.0, 8.0 };
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	if (rank == 0) {
-		/*std::cout << "Via Minimizer_v1: " << std::endl;
-
-		Minimizer_v1 m1(bord.first, bord.second, f1);
-		begin = std::chrono::steady_clock::now();
-		m1.find_point();
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		std::cout << "Total time 1: " << elapsed_ms.count() << " ms\n";*/
-
 		std::cout << std::endl << "Via Minimizer_v2: " << std::endl;
 		Minimizer_v2 m2(bord.first, bord.second, f1);
 		begin = std::chrono::steady_clock::now();
-		m2.solve();
+		res = m2.solve();
 		end = std::chrono::steady_clock::now();
 		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+		std::cout << "Number of points = " << res.k << std::endl;
 		std::cout << "Total time 2: " << elapsed_ms.count() << " ms\n";
 	}
 
@@ -81,6 +92,7 @@ void measure_time_v2_v3() {
 		m3.solve();
 		end = std::chrono::steady_clock::now();
 		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+		std::cout << "Number of points = " << m3.get_result().k << std::endl;
 		std::cout << "Total time 3: " << elapsed_ms.count() << " ms\n";
 	}
 	else
