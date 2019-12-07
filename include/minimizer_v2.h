@@ -1,7 +1,8 @@
 #ifndef __MINIMIZER_v_2_H__
 #define __MINIMIZER_v_2_H__
 
-#include <chrono>
+// improved sequential version
+
 #include <cmath>
 #include <map>
 #include <queue>
@@ -17,6 +18,7 @@ struct result {
 struct characteristics {
 	double y;
 	double R;
+	characteristics();
 	characteristics(double _y, double _R);
 	characteristics(double _R);
 };
@@ -25,6 +27,7 @@ struct interval {
 	std::pair<double, double> first_point;
 	std::pair<double, double> second_point;
 	characteristics _ch;
+	interval();
 	interval(std::pair<double, double> _f_point, std::pair<double, double> _s_point, double _R);
 };
 

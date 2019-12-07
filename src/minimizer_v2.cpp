@@ -1,8 +1,12 @@
 #include "minimizer_v2.h"
 
+characteristics::characteristics() {}
+
 characteristics::characteristics(double _y, double _R): y(_y), R(_R) {}
 
 characteristics::characteristics(double _R): R(_R) {}
+
+interval::interval() {}
 
 interval::interval(std::pair<double, double> _f_point, std::pair<double, double> _s_point, double _R) : first_point(_f_point), second_point(_s_point), _ch(_R) {}
 
@@ -141,88 +145,30 @@ result Minimizer_v2::get_result() {
 }
 
 result Minimizer_v2::solve() {
-	std::chrono::milliseconds elapsed_ms, t[7];
-	for (int i = 0; i < 7;i++)
-		t[i] = { 0 };
-	std::chrono::time_point<std::chrono::steady_clock> begin, end;
 	std::pair<double, double> new_point;
 	double new_m;
 
-	
 	//1я итерация
-	
-
 	min_interval_length = b - a;
+	insert_to_map(a, (*function)(a), 0);
 	res.x = a; res.y = (*function)(a);
-	insert_to_map(res.x, res.y, 0);
 	insert_to_map(b, (*function)(b), 0);
 	reset();
 	M_Max = get_M();
 	m = -1;
-	pq->push(interval({(*left_point).first, (*left_point).second.y }, { (*right_point).first, (*right_point).second.y }, 0));
+	pq->push(interval({ (*left_point).first, (*left_point).second.y }, { (*right_point).first, (*right_point).second.y }, 0));
 	res.k = 2;
 
-	
 	while (!isEnd()) {
-
-		begin = std::chrono::steady_clock::now();
-		
 		new_m = get_m();
-		
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[0] += elapsed_ms;
-
-		
-
-		begin = std::chrono::steady_clock::now();
 		calculate_R(new_point.first, new_m);
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[1] += elapsed_ms;
-
-		begin = std::chrono::steady_clock::now();
 		new_point.first = get_new_point(pq->top()); pq->pop();
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[2] += elapsed_ms;
-
-
-		begin = std::chrono::steady_clock::now();
 		new_point.second = (*function)(new_point.first);
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[3] += elapsed_ms;
-
-		begin = std::chrono::steady_clock::now();
 		insert_to_map(new_point.first, new_point.second, 0);
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[4] += elapsed_ms;
-
-		res.k++; 
-
-
-		begin = std::chrono::steady_clock::now();
+		res.k++;
 		compare_interval_len(new_point.first);
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[5] += elapsed_ms;
-
-		begin = std::chrono::steady_clock::now();
 		compare_M(new_point.first);
-		end = std::chrono::steady_clock::now();
-		elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		t[6] += elapsed_ms;
 	}
-
-	std::cout << "Time of get m = " << t[0].count() << std::endl;
-	std::cout << "Time of calculate R = " << t[1].count() << std::endl;
-	std::cout << "Time of get new point = " << t[2].count() << std::endl;
-	std::cout << "Time of get value of new point = " << t[3].count() << std::endl;
-	std::cout << "Time of insert to map = " << t[4].count() << std::endl;
-	std::cout << "Time of get compare interval len = " << t[5].count() << std::endl;
-	std::cout << "Time of get compare M = " << t[6].count() << std::endl;
-	
+	delete_containers();
 	return res;
 }

@@ -1,6 +1,8 @@
 #ifndef __MINIMIZER_v_1__H__
 #define __MINIMIZER_v_1__H__
 
+// first sequential version
+
 #include <cmath>
 #include <map>
 #include <algorithm>
@@ -35,6 +37,7 @@ public:
 	std::pair<double, double> find_R_Max(double m);
 	double get_new_point(std::pair<double, double> p, double m);
 	double find_point();
+	int get_k();
 };
 
 #endif

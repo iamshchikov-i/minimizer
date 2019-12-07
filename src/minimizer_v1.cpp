@@ -115,3 +115,7 @@ double Minimizer_v1::find_point() {
 	}
 	return res;
 }
+
+int Minimizer_v1::get_k() {
+	return k;
+}

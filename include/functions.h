@@ -6,6 +6,8 @@
 #include <random>
 #include <ctime>
 
+double load();
+
 double f1(double x);
 
 double f2(double x);

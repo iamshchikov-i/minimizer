@@ -199,6 +199,7 @@ TEST(minimizer_v3, test_f6_3) {
 
 	EXPECT_EQ(1, delta <= eps);
 }
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
