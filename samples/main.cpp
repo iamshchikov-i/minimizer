@@ -18,8 +18,8 @@ void measure_time_v2_v3();
 int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 
-	measure_time_v2_v3();
-	//time();
+	//measure_time_v2_v3();
+	time();
 
 	MPI_Finalize();
 	

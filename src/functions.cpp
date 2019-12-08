@@ -4,7 +4,7 @@ double load() {
 	int size = 1000000;
 	double h = 0;
 
-	for (int i = 1; i < size / 20; i++) {
+	for (int i = 1; i < size / 15; i++) {
 
 		h += pow(sin(i), 2) + pow(cos(i), 2);
 		h -= log2((i / i) * 2);
