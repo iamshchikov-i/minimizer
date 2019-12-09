@@ -1,3 +1,4 @@
+#include <thread>
 #include <chrono>
 #include "minimizer_v1.h"
 #include "minimizer_v2.h"
@@ -14,14 +15,16 @@ void measure_time_of_function(double(*f)(double x));
 
 void measure_time_v2_v3();
 
+void pr(int argc, char** argv) {
+	for (int i = 0; i < argc;i++)
+		std::cout << argv[i] << std::endl;
+}
 
 int main(int argc, char** argv) {
-	MPI_Init(&argc, &argv);
+	/*MPI_Init(&argc, &argv);
+	MPI_Finalize();*/
 
-	//measure_time_v2_v3();
-	time();
-
-	MPI_Finalize();
+	pr(argc, argv);
 	
 	return 0;
 }
