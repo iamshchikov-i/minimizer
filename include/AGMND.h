@@ -45,7 +45,6 @@ protected:
 	std::map<double, characteristics>::iterator right_point;
 	std::priority_queue<interval, std::vector<interval>, CompareR>* pq;
 	result res;
-
 	bool isEnd();
 	void go_Next_Interval(), go_new_left_interval(double new_point), reset();
 	double get_num_estimation(), get_M(), get_A(),
@@ -58,7 +57,7 @@ protected:
 		 delete_containers(), perform_first_iteration(), compute_supposed_x();
 public:
 	Minimizer(double _a, double _b, double (*f)(double x), double _eps = 0.001,
-		      double _r_par = 2.0);
+		      double _r_par = 2.09);
 	void set_experiment(const double _a, const double _b, double(*f)(double x),
 		                const double _eps = 0.001, const double _r_par = 2.0);
 	result solve();

@@ -14,16 +14,8 @@ TEST(AGMND, test_f1_1) {
 	double delta;
 	double(*fptr)(double) = f1;
 	Minimizer m(-15, 8, fptr);
-	
-	ASSERT_ANY_THROW(m.solve());
-}
-
-/*TEST(AGMND, test_f1_1) {
-	double delta;
-	double(*fptr)(double) = f1;
-	Minimizer m(-15, 8, fptr);
 	delta = abs(m.solve().x - 5.46);
-	
+
 	EXPECT_EQ(1, delta <= eps);
 }
 
@@ -77,7 +69,7 @@ TEST(AGMND, test_f3_1) {
 	double(*fptr)(double) = f3;
 	Minimizer m(0.12, 10.0, fptr);
 	delta = abs(abs(m.solve().x) - 3.0);
-
+	
 	EXPECT_EQ(1, delta <= eps);
 }
 
@@ -129,7 +121,7 @@ TEST(AGMND, test_f4_2) {
 TEST(AGMND, test_f4_3) {
 	double delta;
 	double(*fptr)(double) = f4;
-	Minimizer m(-19.2, -5.87, fptr);
+	Minimizer m(-19.2, -5.87, fptr, 0.001, 3.1);
 	delta = abs(abs(m.solve().x) - 5.87);
 
 	EXPECT_EQ(1, delta <= eps);
@@ -138,7 +130,7 @@ TEST(AGMND, test_f4_3) {
 TEST(AGMND, test_f5_1) {
 	double delta;
 	double(*fptr)(double) = f5;
-	Minimizer m(0.0, 1.0, fptr, 0.0001);
+	Minimizer m(0.0, 1.0, fptr);
 	delta = abs(abs(m.solve().x) - 0.8028);
 
 	EXPECT_EQ(1, delta <= eps);
@@ -156,7 +148,7 @@ TEST(AGMND, test_f5_2) {
 TEST(AGMND, test_f5_3) {
 	double delta;
 	double(*fptr)(double) = f5;
-	Minimizer m(-1.806, -1.448, fptr);
+	Minimizer m(-1.806, -1.448, fptr, 0.001, 8.0);
 	delta = abs(abs(m.solve().x) - 1.448);
 
 	EXPECT_EQ(1, delta <= eps);
@@ -187,4 +179,4 @@ TEST(AGMND, test_f6_3) {
 	delta = abs(abs(m.solve().x) - 10.53);
 
 	EXPECT_EQ(1, delta <= eps);
-}*/
+}

@@ -2,8 +2,8 @@
 
 characteristics::characteristics() {}
 
-characteristics::characteristics(double _y, double _R, double _num_estimation): y(_y), R(_R), 
-																				num_estimation(_num_estimation) {}
+characteristics::characteristics(double _y, double _R, double _num_estimation): 
+							     y(_y), R(_R), num_estimation(_num_estimation) {}
 
 characteristics::characteristics(double _R): R(_R) {}
 
@@ -58,16 +58,21 @@ double Minimizer::get_M() {
 
 double Minimizer::get_d() {
 	return ((*right_point).first - (*left_point).first) / 2 -
-		((*right_point).second.num_estimation - (*left_point).second.num_estimation) / (2 * m);
+		   ((*right_point).second.num_estimation - 
+		   (*left_point).second.num_estimation) / (2 * m);
 }
 
 void Minimizer::compute_supposed_x() {
 	double tmp1, tmp2, tmp3;
-	tmp1 = ((*left_point).second.y - (*left_point).second.num_estimation * (*left_point).first) - 
-		   ((*right_point).second.y - (*right_point).second.num_estimation * (*right_point).first) + 
+	tmp1 = ((*left_point).second.y - (*left_point).second.num_estimation * 
+		   (*left_point).first) - ((*right_point).second.y - 
+		   (*right_point).second.num_estimation * (*right_point).first) + 
 		   m * (pow((*right_point).first, 2) - pow((*left_point).first, 2)) / 2;
-	tmp2 = m * ((*right_point).first - (*left_point).first) - 
-		   ((*right_point).second.num_estimation - (*left_point).second.num_estimation);
+	
+	tmp2 = m * ((*right_point).first - (*left_point).first) + 
+		   ((*right_point).second.num_estimation - 
+		   (*left_point).second.num_estimation);
+	
 	tmp3 = m * pow(get_d(), 2);
 	
 	(*right_point).second.supposed_x2 = (tmp1 - tmp3) / tmp2;
@@ -136,11 +141,11 @@ void Minimizer::compute_R(double new_point, double new_m) {
 	if (new_m != m) {
 		if (!pq->empty()) {
 			delete pq;
-			pq = new std::priority_queue<interval, std::vector<interval>, CompareR>;
+			pq = new std::priority_queue<interval, std::vector<interval>, 
+				                         CompareR>;
 		}
 		m = new_m;
-		reset();
-		for (; right_point != points->end(); go_Next_Interval()) {
+		for (reset(); right_point != points->end(); go_Next_Interval()) {
 			compute_supposed_x();
 			(*right_point).second.R = get_R();
 			pq->push(interval({ (*left_point).first, (*left_point).second },
@@ -167,7 +172,8 @@ double Minimizer::get_m() {
 		throw - 1;
 }
 
-void Minimizer::insert_to_map(double _x, double _y, double _R, double _num_estimation) {
+void Minimizer::insert_to_map(double _x, double _y, double _R, 
+							  double _num_estimation) {
 	characteristics _ch(_y, _R, _num_estimation);
 	points->insert({ _x, _ch });
 	if (_y < res.y) {
@@ -189,6 +195,9 @@ void Minimizer::compare_interval_len(double new_point) {
 void Minimizer::compare_M(double new_point) {
 	double M;
 	go_new_left_interval(new_point);
+	if (left_point == points->begin())
+		(*left_point).second.num_estimation = 
+		(*right_point).second.num_estimation;
 	for (int i = 0;i < 2;++i, go_Next_Interval()) {
 		(*right_point).second.num_estimation = get_num_estimation();
 		M = get_M();
@@ -224,6 +233,13 @@ void Minimizer::perform_first_iteration() {
 	res.x = a; res.y = (*function)(a);
 	insert_to_map(res.x, res.y, 0, 0);
 	insert_to_map(b, (*function)(b), 0, 0);
+	reset();
+	(*left_point).second.num_estimation =
+	(*right_point).second.num_estimation = get_num_estimation();
+	M_Max = get_M();
+	m = -1;
+	pq->push(interval({ (*left_point).first, (*left_point).second }, 
+		              { (*right_point).first, (*right_point).second }));
 }
 
 void Minimizer::set_experiment(double _a, double _b, double(*f)(double x),
@@ -250,40 +266,13 @@ result Minimizer::solve() {
 	perform_first_iteration(); // perform at the boundary points a and b 
 	
 	while (!isEnd()) {
-
-		//rule 2
-		reset();
-		(*left_point).second.num_estimation = get_num_estimation();
-		for (; right_point != points->end(); go_Next_Interval())
-			(*right_point).second.num_estimation = get_num_estimation();
-		
-		//rule 3
-		for (reset(); right_point != points->end(); go_Next_Interval()) {
-			M = get_M();
-			if(left_point == points->begin())
-				M_Max = M;
-			else if (M > M_Max)
-				M_Max = M;
-		}
-		m = get_m();
-
-		//rule 4
-		for (reset(); right_point != points->end(); go_Next_Interval()) {
-			compute_supposed_x();
-			(*right_point).second.R = get_R();
-			pq->push(interval({ (*left_point).first, (*left_point).second },
-				              { (*right_point).first, (*right_point).second }));
-		}
-
-		//rule 5 and 6
+		new_m = get_m();
+		compute_R(new_point.first, new_m);
 		new_point.first = get_new_point(pq->top()); pq->pop();
-		std::cout << "new point = " << new_point.first << std::endl;
-		if (new_point.first < a || new_point.first > b) throw - 1;
-		
-		//rule 1 (insert point to map according to order)
 		new_point.second = (*function)(new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0, 0);
 		compare_interval_len(new_point.first);
+		compare_M(new_point.first);
 	}
 	delete_containers();
 	return res;
