@@ -12,6 +12,7 @@
 struct result {
 	double x;
 	double y;
+	int k;
 };
 
 struct characteristics {

@@ -274,6 +274,8 @@ result Minimizer::solve() {
 		compare_interval_len(new_point.first);
 		compare_M(new_point.first);
 	}
+	res.k = points->size();
 	delete_containers();
+	
 	return res;
 }
