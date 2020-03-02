@@ -1,0 +1,15 @@
+language: cpp
+install:
+  - sudo apt-get install mpich libmpich-dev
+compiler:
+  - gcc
+  - clang
+script:
+- mkdir ../build
+- cd ../build
+- cmake ../minimizer
+- make -j
+- cd ./bin/
+- ./test_minimizer --gtest_list_tests
+notifications:
+  email: false
