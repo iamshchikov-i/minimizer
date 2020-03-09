@@ -22,7 +22,7 @@ TEST(AGMND, throw_when_lower_border_more_than_upper_border) {
 
 TEST(AGMND, can_find_min_f1) {
 	double(*fptr)(double, double) = f1;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 1.0;
 	point a(-5.22, -5.78), b(5.73, -5.1), c(-5.68, 5.34), d(5.08, 5.49);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -37,7 +37,7 @@ TEST(AGMND, can_find_min_f1) {
 
 TEST(AGMND, can_find_min_f1_on_x_axis) {
 	double(*fptr)(double, double) = f1;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 1.0;
 	point a(-5.6, 1.0), b(5.8, 1.0), c(-5.1, 1.0), d(5.5, 1.0);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -52,7 +52,7 @@ TEST(AGMND, can_find_min_f1_on_x_axis) {
 
 TEST(AGMND, can_find_min_f1_on_y_axis) {
 	double(*fptr)(double, double) = f1;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 1.0;
 	point a(0.0, -5.1), b(0.0, -5.5), c(0.0, 5.2), d(0.0, 5.9);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -68,7 +68,7 @@ TEST(AGMND, can_find_min_f1_on_y_axis) {
 
 TEST(AGMND, can_find_min_f2) {
 	double(*fptr)(double, double) = f2;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 1.0, actual_y = 0.0;
 	point a(-4.6, -2.48), b(3.25, -2.76), c(-4.41, 5.08), d(3.74, 5.68);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -84,7 +84,7 @@ TEST(AGMND, can_find_min_f2) {
 
 TEST(AGMND, can_find_min_f2_on_x_axis) {
 	double(*fptr)(double, double) = f2;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 1.0, actual_y = 0.0;
 	point a(-4.46, 0.0), b(3.07, 0.0), c(-4.04, 0.0), d(3.34, 0.0);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -100,7 +100,7 @@ TEST(AGMND, can_find_min_f2_on_x_axis) {
 
 TEST(AGMND, can_find_min_f2_on_y_axis) {
 	double(*fptr)(double, double) = f2;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 1.0, actual_y = 0.0;
 	point a(1.0, -2.07), b(1.0, -2.45), c(1.0, 5.39), d(1.0, 5.14);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -116,7 +116,7 @@ TEST(AGMND, can_find_min_f2_on_y_axis) {
 
 TEST(minimizer_seq, can_find_min_f3) {
 	double(*fptr)(double, double) = f3;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 0.0;
 	point a(-1.0, -1.0), b(1.0, -1.0), c(-1.0, 1.0), d(1.0, 1.0);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -132,7 +132,7 @@ TEST(minimizer_seq, can_find_min_f3) {
 
 TEST(minimizer_seq, can_find_min_f3_on_x_axis) {
 	double(*fptr)(double, double) = f3;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 0.0;
 	point a(-3.0, 0.0), b(4.3, 0.0), c(-3.0, 0.0), d(4.3, 0.0);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
@@ -148,7 +148,7 @@ TEST(minimizer_seq, can_find_min_f3_on_x_axis) {
 
 TEST(minimizer_seq, can_find_min_f3_on_y_axis) {
 	double(*fptr)(double, double) = f3;
-	result res;
+	_result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 0.0;
 	point a(0.0, -3.0), b(0.0, -3.0), c(0.0, 4.3), d(0.0, 4.3);
 	AGMND m(a.x, b.x, a.y, c.y, fptr);
