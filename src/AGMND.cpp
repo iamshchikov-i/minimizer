@@ -1,14 +1,14 @@
 #include "AGMND.h"
 
-characteristics::characteristics() {}
+_characteristics::_characteristics() {}
 
-characteristics::characteristics(double _z, double _R, double _num_estimation) :
+_characteristics::_characteristics(double _z, double _R, double _num_estimation) :
 	z(_z), R(_R), num_estimation(_num_estimation) {}
 
-interval::interval() {}
+_interval::_interval() {}
 
-interval::interval(std::pair<double, characteristics> _f_point,
-	std::pair<double, characteristics> _s_point) :
+_interval::_interval(std::pair<double, _characteristics> _f_point,
+	std::pair<double, _characteristics> _s_point) :
 	first_point(_f_point), second_point(_s_point) {}
 
 One_Dimensional_AGMND::One_Dimensional_AGMND(double _a, double _b,
@@ -17,8 +17,8 @@ One_Dimensional_AGMND::One_Dimensional_AGMND(double _a, double _b,
 	eps(_eps), r_p(_r_par) {
 	if (a > b)
 		throw "b is a right border, must be more than a";
-	points = new std::map<double, characteristics>;
-	pq = new std::priority_queue<interval, std::vector<interval>, CompareR>;
+	points = new std::map<double, _characteristics>;
+	pq = new std::priority_queue<_interval, std::vector<_interval>, _CompareR>;
 }
 
 double One_Dimensional_AGMND::get_num_estimation() {
@@ -145,7 +145,7 @@ void One_Dimensional_AGMND::compute_R(double new_point, double new_m) {
 		for (reset(); right_point != points->end(); go_Next_Interval()) {
 			compute_supposed_x();
 			(*right_point).second.R = get_R();
-			pq->push(interval({ (*left_point).first, (*left_point).second },
+			pq->push(_interval({ (*left_point).first, (*left_point).second },
 				{ (*right_point).first, (*right_point).second }));
 		}
 	}
@@ -154,7 +154,7 @@ void One_Dimensional_AGMND::compute_R(double new_point, double new_m) {
 		for (int i = 0;i < 2;++i, go_Next_Interval()) {
 			compute_supposed_x();
 			(*right_point).second.R = get_R();
-			pq->push(interval({ (*left_point).first, (*left_point).second },
+			pq->push(_interval({ (*left_point).first, (*left_point).second },
 				{ (*right_point).first, (*right_point).second }));
 		}
 	}
@@ -171,7 +171,7 @@ double One_Dimensional_AGMND::get_m() {
 
 void One_Dimensional_AGMND::insert_to_map(double _y, double _z, double _R,
 	double _num_estimation) {
-	characteristics _ch(_z, _R, _num_estimation);
+	_characteristics _ch(_z, _R, _num_estimation);
 	points->insert({ _y, _ch });
 	if (_z < res.z) {
 		res.x = curr_x;
@@ -204,7 +204,7 @@ void One_Dimensional_AGMND::compare_M(double new_point) {
 	}
 }
 
-double One_Dimensional_AGMND::get_new_point(interval i) {
+double One_Dimensional_AGMND::get_new_point(_interval i) {
 	if (i.second_point.second.supposed_x1 >= i.second_point.second.supposed_x2 &&
 		i.second_point.second.supposed_x1 <= i.second_point.second.supposed_x3)
 		return i.second_point.second.supposed_x1;
@@ -239,13 +239,14 @@ void One_Dimensional_AGMND::perform_first_iteration() {
 			(*right_point).second.num_estimation = get_num_estimation();
 		M_Max = get_M();
 		m = -1;
-		pq->push(interval({ (*left_point).first, (*left_point).second },
+		pq->push(_interval({ (*left_point).first, (*left_point).second },
 			{ (*right_point).first, (*right_point).second }));
 	}
 }
 
 void One_Dimensional_AGMND::set_experiment (double _a, double _b,
 	double _curr_x, double(*f)(double x, double y), double _eps, double _r_par) {
+	res.k = 0;
 	a = _a;
 	b = _b;
 	function = f;
@@ -253,16 +254,16 @@ void One_Dimensional_AGMND::set_experiment (double _a, double _b,
 	r_p = _r_par;
 	curr_x = _curr_x;
 	if (points == nullptr)
-		points = new std::map<double, characteristics>;
+		points = new std::map<double, _characteristics>;
 	if (pq == nullptr)
-		pq = new std::priority_queue<interval, std::vector<interval>, CompareR>;
+		pq = new std::priority_queue<_interval, std::vector<_interval>, _CompareR>;
 }
 
-result One_Dimensional_AGMND::get_result() {
+_result One_Dimensional_AGMND::get_result() {
 	return res;
 }
 
-result One_Dimensional_AGMND::solve() {
+_result One_Dimensional_AGMND::solve() {
 	std::pair<double, double> new_point;
 	double new_m;
 
@@ -289,31 +290,33 @@ result One_Dimensional_AGMND::solve() {
 	return res;
 }
 
-AGMND::AGMND(double _a, double _b, double _curr_y, double _upper_y,
+AGMND::AGMND(double _a, double _b, double _lower_y, double _upper_y,
 	double(*f)(double x, double y),
 	double _eps, double _r_par) :
 	One_Dimensional_AGMND(_a, _b, 0, f, _eps, _r_par),
-	curr_y(_curr_y), upper_y(_upper_y), function(f) {
+	lower_y(_lower_y), upper_y(_upper_y), function(f) {
 	if (a > b)
 		throw "b is a right border, must be more than a";
-	if (curr_y > upper_y)
-		throw "upper_y is a upper border, must be more than curr_y";
+	if (lower_y > upper_y)
+		throw "upper_y is a upper border, must be more than lower_y";
 }
 
 void AGMND::do_first_iteration(One_Dimensional_AGMND* odm,
-	result* tmp_res) {
+	_result* tmp_res) {
 	min_interval_length = b - a;
-	odm->set_experiment(curr_y, upper_y, a, function);
+	odm->set_experiment(lower_y, upper_y, a, function, eps, r_p);
 
 	*tmp_res = odm->solve();
+	res.k += tmp_res->k;
 	res.x = a;
 	res.y = tmp_res->y;
 	res.z = tmp_res->z;
 	insert_to_map(res.x, res.y, res.z, 0, 0);
 
 	if (a != b) {
-		odm->set_experiment(curr_y, upper_y, b, function);
+		odm->set_experiment(lower_y, upper_y, b, function, eps, r_p);
 		*tmp_res = odm->solve();
+		res.k += tmp_res->k;
 		insert_to_map(b, tmp_res->y, tmp_res->z, 0, 0);
 
 		reset();
@@ -321,13 +324,13 @@ void AGMND::do_first_iteration(One_Dimensional_AGMND* odm,
 		(*right_point).second.num_estimation = get_num_estimation();
 		M_Max = get_M();
 		m = -1;
-		pq->push(interval({ (*left_point).first, (*left_point).second },
+		pq->push(_interval({ (*left_point).first, (*left_point).second },
 			{ (*right_point).first, (*right_point).second }));
 	}
 }
 
 void AGMND::insert_to_map(double _x, double _y, double _z, double _R, double _num_estimation) {
-	characteristics _ch(_z, _R, _num_estimation);
+	_characteristics _ch(_z, _R, _num_estimation);
 	points->insert({ _x, _ch });
 	if (_z < res.z) {
 		res.x = _x;
@@ -336,46 +339,46 @@ void AGMND::insert_to_map(double _x, double _y, double _z, double _R, double _nu
 	}
 }
 
-result AGMND::get_result() {
+_result AGMND::get_result() {
 	return res;
 }
 
 void AGMND::set_experiment(const double _a, const double _b,
-	double _curr_y, double _upper_y, double(*f)(double x, double y),
+	double _lower_y, double _upper_y, double(*f)(double x, double y),
 	const double _eps, const double _r_par) {
 	a = _a;
 	b = _b;
-	curr_y = _curr_y;
+	lower_y = _lower_y;
 	upper_y = _upper_y;
 	function = f;
 	eps = _eps;
 	r_p = _r_par;
 	if (points == nullptr)
-		points = new std::map<double, characteristics>;
+		points = new std::map<double, _characteristics>;
 	if (pq == nullptr)
-		pq = new std::priority_queue<interval, std::vector<interval>,
-		CompareR>;
+		pq = new std::priority_queue<_interval, std::vector<_interval>,
+		_CompareR>;
 }
 
 void AGMND::solve() {
 	One_Dimensional_AGMND odm(0, 0, 0, nullptr), *podm = &odm;
 	std::pair<double, double> new_point;
 	double new_m;
-	result tmp_res, *ptmp_res = &tmp_res;
-
+	_result tmp_res, *ptmp_res = &tmp_res;
+	res.k = 0;
 	do_first_iteration(podm, ptmp_res);
-
+	
 	while (min_interval_length > eps) {
 		new_m = get_m();
 		compute_R(new_point.first, new_m);
 		new_point.first = get_new_point(pq->top()); pq->pop();
-		odm.set_experiment(curr_y, upper_y, new_point.first, function);
+		odm.set_experiment(lower_y, upper_y, new_point.first, function, eps, r_p);
 		tmp_res = odm.solve();
+		res.k += tmp_res.k;
 		new_point.second = tmp_res.z;
 		insert_to_map(new_point.first, tmp_res.y, new_point.second, 0, 0);
 		compare_interval_len(new_point.first);
 		compare_M(new_point.first);
 	}
-	res.k = points->size();
 	delete_containers();
 }

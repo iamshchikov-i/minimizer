@@ -82,17 +82,18 @@ class One_Dimensional_Minimizer {
 
 class Minimizer : public One_Dimensional_Minimizer {
  private:
-    double curr_y;
+	int k;
+    double lower_y;
     double upper_y;
     double(*function) (double _x, double _y);
     void do_first_iteration(One_Dimensional_Minimizer* odm, result* tmp_res);
  public:
     void insert_to_map(double _x, double _y, double _z, double _R);
     result get_result();
-    Minimizer(double _a, double _b, double _curr_y, double _upper_y,
+    Minimizer(double _a, double _b, double _lower_y, double _upper_y,
               double(*f)(double x, double y), double _eps = 0.001,
               int _N_max = 500, double _r_par = 2.0);
-    void set_experiment(const double _a, const double _b, double _curr_y,
+    void set_experiment(const double _a, const double _b, double _lower_y,
                         double _upper_y, double(*f)(double x, double y),
                         const double _eps = 0.001, const int _N_max = 500,
                         const double _r_par = 2.0);

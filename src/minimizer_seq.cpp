@@ -141,6 +141,7 @@ void One_Dimensional_Minimizer::set_experiment(double _a, double _b,
     double _r_par) {
     if (a > b)
         throw "b is a right border, must be more than a";
+	res.k = 0;
     a = _a;
     b = _b;
     curr_x = _curr_x;
@@ -170,36 +171,39 @@ result One_Dimensional_Minimizer::solve() {
 		compare_interval_len(new_point.first);
 		compare_M(new_point.first);
 	}
+	res.k = values->size();
 	delete_containers();
 
 	return res;
 }
 
-Minimizer::Minimizer(double _a, double _b, double _curr_y, double _upper_y,
+Minimizer::Minimizer(double _a, double _b, double _lower_y, double _upper_y,
                      double(*f)(double x, double y),
     double _eps, int _N_max, double _r_par) :
     One_Dimensional_Minimizer(_a, _b, 0, f, _eps, _N_max, _r_par),
-    curr_y(_curr_y), upper_y(_upper_y), function(f) {
+    lower_y(_lower_y), upper_y(_upper_y), function(f) {
     if (a > b)
         throw "b is a right border, must be more than a";
-    if (curr_y > upper_y)
-        throw "upper_y is a upper border, must be more than curr_y";
+    if (lower_y > upper_y)
+        throw "upper_y is a upper border, must be more than lower_y";
 }
 
 void Minimizer::do_first_iteration(One_Dimensional_Minimizer* odm,
                                    result* tmp_res) {
     min_interval_length = b - a;
-    odm->set_experiment(curr_y, upper_y, a, function);
+    odm->set_experiment(lower_y, upper_y, a, function, eps, 500, r_p);
 
     *tmp_res = odm->solve();
+	res.k += tmp_res->k;
     res.x = a;
     res.y = tmp_res->y;
     res.z = tmp_res->z;
     insert_to_map(res.x, res.y, res.z, 0);
 
     if (a != b) {
-        odm->set_experiment(curr_y, upper_y, b, function);
+        odm->set_experiment(lower_y, upper_y, b, function, eps, 500, r_p);
         *tmp_res = odm->solve();
+		res.k += tmp_res->k;
         insert_to_map(b, tmp_res->y, tmp_res->z, 0);
 
         reset();
@@ -225,11 +229,11 @@ result Minimizer::get_result() {
 }
 
 void Minimizer::set_experiment(const double _a, const double _b,
-    double _curr_y, double _upper_y, double(*f)(double x, double y),
+    double _lower_y, double _upper_y, double(*f)(double x, double y),
     const double _eps, const int _N_max, const double _r_par) {
     a = _a;
     b = _b;
-    curr_y = _curr_y;
+    lower_y = _lower_y;
     upper_y = _upper_y;
     function = f;
     eps = _eps;
@@ -247,20 +251,20 @@ void Minimizer::solve() {
     std::pair<double, double> new_point;
     double new_m;
     result tmp_res, *ptmp_res = &tmp_res;
-
+	res.k = 0;
     do_first_iteration(podm, ptmp_res);
-
+	
     while (min_interval_length > eps) {
         new_m = get_m();
         calculate_R(new_point.first, new_m);
         new_point.first = get_new_point(pq->top()); pq->pop();
-        odm.set_experiment(curr_y, upper_y, new_point.first, function);
+        odm.set_experiment(lower_y, upper_y, new_point.first, function, eps, 500, r_p);
         tmp_res = odm.solve();
+		res.k += tmp_res.k;
         new_point.second = tmp_res.z;
         insert_to_map(new_point.first, tmp_res.y, new_point.second, 0);
         compare_interval_len(new_point.first);
         compare_M(new_point.first);
     }
-	res.k = values->size();
     delete_containers();
 }
