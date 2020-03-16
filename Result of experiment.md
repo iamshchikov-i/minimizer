@@ -103,7 +103,6 @@
 
 
 ###Using method is AGP
-
 | Task number  | Parameter r  | Number of processed points on X axis  | Max number of processed points on Y axis | Total number of processed points |
 | ------------ | ------------ | ------------ | ------------ | ------------ |
 | 0 | 1.2 | 19 | 26 | 283 |
@@ -209,7 +208,6 @@
 
 
 ###Using method is AGMND
-
 | Task number  | Parameter r  | Number of processed points on X axis  | Max number of processed points on Y axis | Total number of processed points |
 | ------------ | ------------ | ------------ | ------------ | ------------ |
 | 0 | 3.3 | 45 | 59 | 2003 |
