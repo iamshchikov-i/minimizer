@@ -1,4 +1,4 @@
-| Task number  | Number of processed points via General method(parameter r = 3.3)  | Number of processed points via AGMND(parameter r = 3.3)  | k1/k2  |
+| Task number  | Number of processed points via AGP(parameter r = 3.3)  | Number of processed points via AGMND(parameter r = 3.3)  | k1/k2  |
 | ------------ | ------------ | ------------ | ------------ |
 | 0 | 2451 | 2003 | 1.22366 |
 | 1 | 2327 | 1908 | 1.2196 |
