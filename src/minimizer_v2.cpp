@@ -26,7 +26,7 @@ bool Minimizer_v2::stop2() {
 }
 
 bool Minimizer_v2::isEnd() {
-	return stop1() || stop2();
+	return /*stop1()||*/stop2();
 }
 
 void Minimizer_v2::go_Next_Interval() {
