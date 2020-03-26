@@ -58,7 +58,7 @@ public:
 		double _curr_x, double(*f)(double x, double y), double _r_p) = 0;
 	result get_result();
 	virtual result solve() = 0;
-	
+	double get_r();
 };
 
 #endif

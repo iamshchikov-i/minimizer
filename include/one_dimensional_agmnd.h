@@ -12,6 +12,7 @@ struct CompareR_max {
 
 class One_Dimensional_AGMND: public One_Dimensional_Minimizer {
 protected:
+	bool recalc;
 	std::priority_queue<interval, std::vector<interval>, CompareR_max>* pq;
 	virtual bool isEnd();
 	virtual double get_M() , get_m(), get_R(), get_new_point(interval i);
@@ -23,6 +24,7 @@ protected:
 		get_B(double supposed_x2), get_d(),
 		auxiliary_function(double x);
 	void compute_supposed_x();
+	void check_supposed_x(), recalc_characteristics(), check_new_intervals(double new_point);
 public:
 	One_Dimensional_AGMND(double _a, double _b, double _curr_x,
 		double(*f)(double x, double y),

@@ -1,5 +1,5 @@
-#ifndef __FUNCTIONS_H__
-#define __FUNCTIONS_H__
+#ifndef __TWO_DIMENSIONAL_FUNCTIONS_H__
+#define __TWO_DIMENSIONAL_FUNCTIONS_H__
 
 #include <cmath>
 

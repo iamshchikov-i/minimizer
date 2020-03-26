@@ -120,7 +120,7 @@ TEST(Two_Dimensional_Minimizer, can_find_min_f2_on_y_axis) {
 	EXPECT_EQ(1, delta_y <= eps);
 }
 
-TEST(minimizer_seq, can_find_min_f3) {
+TEST(Two_Dimensional_Minimizer, can_find_min_f3) {
 	One_Dimensional_AGMND odm(0, 0, 0, nullptr), *p_odm = &odm;
 	double(*fptr)(double, double) = f3;
 	result res;
@@ -137,7 +137,7 @@ TEST(minimizer_seq, can_find_min_f3) {
 	EXPECT_EQ(1, delta_y <= eps);
 }
 
-TEST(minimizer_seq, can_find_min_f3_on_x_axis) {
+TEST(Two_Dimensional_Minimizer, can_find_min_f3_on_x_axis) {
 	One_Dimensional_AGMND odm(0, 0, 0, nullptr), *p_odm = &odm;
 	double(*fptr)(double, double) = f3;
 	result res;
@@ -154,7 +154,7 @@ TEST(minimizer_seq, can_find_min_f3_on_x_axis) {
 	EXPECT_EQ(1, delta_y <= eps);
 }
 
-TEST(minimizer_seq, can_find_min_f3_on_y_axis) {
+TEST(Two_Dimensional_Minimizer, can_find_min_f3_on_y_axis) {
 	One_Dimensional_AGMND odm(0, 0, 0, nullptr), *p_odm = &odm;
 	double(*fptr)(double, double) = f3;
 	result res;

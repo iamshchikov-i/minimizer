@@ -13,7 +13,7 @@ Two_Dimensional_Minimizer::Two_Dimensional_Minimizer(One_Dimensional_Minimizer* 
 
 void Two_Dimensional_Minimizer::perform_first_iteration(result* tmp_res) {
 	min_interval_length = b - a;
-	odm->set_experiment(lower_y, upper_y, a, function, r_p);
+	odm->set_experiment(lower_y, upper_y, a, function, odm->get_r());
 
 	*tmp_res = odm->solve();
 	res.k += tmp_res->k;
@@ -24,7 +24,7 @@ void Two_Dimensional_Minimizer::perform_first_iteration(result* tmp_res) {
 	insert_to_map(res.x, res.y, res.z, 0);
 
 	if (a != b) {
-		odm->set_experiment(lower_y, upper_y, b, function, r_p);
+		odm->set_experiment(lower_y, upper_y, b, function, odm->get_r());
 		*tmp_res = odm->solve();
 		res.k += tmp_res->k;
 
@@ -35,6 +35,7 @@ void Two_Dimensional_Minimizer::perform_first_iteration(result* tmp_res) {
 
 		reset();
 		M_Max = get_M();
+		
 		m = -1;
 		pq->push(interval({ (*left_point).first, (*left_point).second },
 				 { (*right_point).first, (*right_point).second }));
@@ -79,7 +80,7 @@ result Two_Dimensional_Minimizer::solve() {
 		new_m = get_m();
 		compute_R(new_point.first, new_m);
 		new_point.first = get_new_point(pq->top()); pq->pop();
-		odm->set_experiment(lower_y, upper_y, new_point.first, function, r_p);
+		odm->set_experiment(lower_y, upper_y, new_point.first, function, odm->get_r());
 		tmp_res = odm->solve();
 		res.k += tmp_res.k;
 

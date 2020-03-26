@@ -53,3 +53,7 @@ One_Dimensional_Minimizer::~One_Dimensional_Minimizer() {
 result One_Dimensional_Minimizer::get_result() {
 	return res;
 }
+
+double One_Dimensional_Minimizer::get_r() {
+	return r_p;
+}
