@@ -21,20 +21,49 @@ Minimizer::Minimizer(double _a, double _b, double(*f)(double x),
 	recalc = false;
 }
 
-double Minimizer::get_num_estimation() {
-	return ((*right_point).second.y - (*left_point).second.y) /
-		   ((*right_point).first - (*left_point).first);
+void Minimizer::compute_num_estimation() {
+	reset();
+	std::map<double, _characteristics>::iterator point_after_right = right_point;
+	point_after_right++;
+
+	double H, h1, h2, d;
+
+	h1 = (*right_point).first - (*left_point).first;
+	h2 = (*point_after_right).first - (*right_point).first;
+	d = h2 / h1;
+	H = h1 + h2;
+
+	(*left_point).second.num_estimation = ( -(2 + d) * (*left_point).second.y + 
+		(pow((1 + d), 2) * (*right_point).second.y / d) - (*point_after_right).second.y / d) / H;
+
+	for (; point_after_right != --points->end(); go_Next_interval(), point_after_right++) {
+		h1 = (*right_point).first - (*left_point).first;
+		h2 = (*point_after_right).first - (*right_point).first;
+		d = h2 / h1;
+		H = h1 + h2;
+
+		(*right_point).second.num_estimation = (-d * (*left_point).second.y +
+			((pow(d, 2) - 1) * (*right_point).second.y / d) + (*point_after_right).second.y / d) / H;
+	}
+
+	h1 = (*right_point).first - (*left_point).first;
+	h2 = (*point_after_right).first - (*right_point).first;
+	d = h2 / h1;
+	H = h1 + h2;
+
+	(*point_after_right).second.num_estimation = (d * (*left_point).second.y -
+		( pow((1 + d), 2) * (*right_point).second.y / d) + (2 * d + 1) * (*point_after_right).second.y / d) / H;
 }
 
 bool Minimizer::isEnd() {
-	return min__interval_length <= eps;
+	return min_interval_length <= eps;
 }
 
-void Minimizer::go_Next__interval() {
+void Minimizer::go_Next_interval() {
 	left_point++; right_point++;
 }
 
-void Minimizer::go_new_left__interval(double new_point) {
+void Minimizer::go_new_left_interval(double new_point) {
 	right_point = points->find(new_point);
 	left_point = right_point; left_point--;
 }
@@ -49,6 +78,7 @@ double Minimizer::get_M() {
 
 	dx = (*right_point).first - (*left_point).first;
 	dy = (*right_point).second.y - (*left_point).second.y;
+	
 	t1 = abs((*right_point).second.num_estimation - 
 		     (*left_point).second.num_estimation) / abs(dx);
 	t2 = -2 * (dy - (*left_point).second.num_estimation * dx) / pow(dx, 2);
@@ -178,7 +208,7 @@ void Minimizer::recalc_characteristics() {
 		recalc = false;
 		while (!pq->empty())
 			pq->pop();
-		for (reset(); right_point != points->end(); go_Next__interval()) {
+		for (reset(); right_point != points->end(); go_Next_interval()) {
 			compute_supposed_x();
 			check_supposed_x();
 			if (recalc) break;
@@ -195,8 +225,8 @@ void Minimizer::compute_R(double new_point, double new_m) {
 		recalc_characteristics();
 	}
 	else {
-		go_new_left__interval(new_point);
-		for (int i = 0;i < 2;++i, go_Next__interval()) {
+		go_new_left_interval(new_point);
+		for (int i = 0;i < 2;++i, go_Next_interval()) {
 			compute_supposed_x();
 			check_supposed_x();
 			if (recalc) break;
@@ -228,24 +258,20 @@ void Minimizer::insert_to_map(double _x, double _y, double _R,
 	}
 }
 
-void Minimizer::compare__interval_len(double new_point) {
-	go_new_left__interval(new_point);
+void Minimizer::compare_interval_len(double new_point) {
+	go_new_left_interval(new_point);
 	double _interval_length;
-	for (int i = 0;i < 2;++i, go_Next__interval()) {
+	for (int i = 0;i < 2;++i, go_Next_interval()) {
 		_interval_length = (*right_point).first - (*left_point).first;
-		if (_interval_length < min__interval_length)
-			min__interval_length = _interval_length;
+		if (_interval_length < min_interval_length)
+			min_interval_length = _interval_length;
 	}
 }
 
 void Minimizer::compare_M(double new_point) {
 	double M;
-	go_new_left__interval(new_point);
-	if (left_point == points->begin())
-		(*left_point).second.num_estimation = 
-		(*right_point).second.num_estimation;
-	for (int i = 0;i < 2;++i, go_Next__interval()) {
-		(*right_point).second.num_estimation = get_num_estimation();
+	go_new_left_interval(new_point);
+	for (int i = 0;i < 2;++i, go_Next_interval()) {
 		M = get_M();
 		if (M >= M_Max)
 			M_Max = M;
@@ -274,7 +300,7 @@ void Minimizer::delete_containers() {
 }
 
 void Minimizer::perform_first_iteration() {
-	min__interval_length = b - a;
+	min_interval_length = b - a;
 	res.x = a;
 	res.y = (*function)(a);
 
@@ -283,7 +309,8 @@ void Minimizer::perform_first_iteration() {
 		insert_to_map(b, (*function)(b), 0, 0);
 		reset();
 		(*left_point).second.num_estimation =
-			(*right_point).second.num_estimation = get_num_estimation();
+		(*right_point).second.num_estimation = ((*right_point).second.y - (*left_point).second.y) /
+											   ((*right_point).first - (*left_point).first);
 		M_Max = get_M();
 		m = -1;
 		pq->push(_interval({ (*left_point).first, (*left_point).second },
@@ -310,6 +337,7 @@ _result Minimizer::get_result() {
 }
 
 _result Minimizer::solve() {
+	//eps *= b - a;
 	std::pair<double, double> new_point;
 	double new_m;
 	_interval search_interval;
@@ -322,13 +350,10 @@ _result Minimizer::solve() {
 		search_interval = pq->top(); pq->pop();
 		new_point.first = get_new_point(search_interval);
 
-		if (new_point.first <= a || new_point.first >= b)
-			printf("ahahhaha lol\n");
-
 		new_point.second = (*function)(new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0, 0);
-
-		compare__interval_len(new_point.first);
+		compute_num_estimation();
+		compare_interval_len(new_point.first);
 		compare_M(new_point.first);
 	}
 	res.k = points->size();
