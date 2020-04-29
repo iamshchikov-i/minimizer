@@ -40,7 +40,7 @@ struct CompareR_max {
 class Minimizer {
 protected:
 	bool recalc;
-	double a, b, m, M_Max, eps, r_p, min_interval_length;
+	double a, b, m, new_m, M_Max, eps, r_p, min_interval_length;
 	double(*function) (double _x);
 	std::map<double, _characteristics>* points;
 	std::map<double, _characteristics>::iterator left_point;
@@ -53,14 +53,14 @@ protected:
 		   get_B(double supposed_x2), get_d(), get_R(), get_m(),
 		   auxiliary_function(double x),
 		   get_new_point(_interval i);
-	void compute_R(double new_point, double new_m), compute_num_estimation(),
+	void compute_R(double new_point), compute_num_estimation(),
 		insert_to_map(double _x, double _y, double _R, double _num_estimation),
 		compare_interval_len(double new_point), compare_M(double new_point),
 		delete_containers(), perform_first_iteration(), compute_supposed_x(),
-		recalc_characteristics(), check_supposed_x();
+		recalc_characteristics(), check_supposed_x(), update_m();
 public:
 	Minimizer(double _a, double _b, double (*f)(double x), double _eps = 0.001,
-		      double _r_par = 1.0);
+		      double _r_par = 2.0);
 	void set_experiment(const double _a, const double _b, double(*f)(double x),
 		                const double _eps = 0.001, const double _r_par = 2.0);
 	_result solve();

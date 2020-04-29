@@ -24,15 +24,13 @@ int main(int argc, char** argv) {
 	_result res;
 
 	Minimizer agmnd(intervals[0][0], intervals[0][1], pfn[0]);
-	
-	
-	for (int j = 0; j < n; j++) {
+	for (int j = 0; j < 20; j++) {
 
-		agmnd.set_experiment(intervals[j][0], intervals[j][1], pfn[j], 0.001, 1.2);
+		agmnd.set_experiment(intervals[j][0], intervals[j][1], pfn[j], 0.0001, r1);
 		agmnd.solve();
 		res = agmnd.get_result();
 		
-		std::cout << j << "\t" << res.k << "\t" << res.x << "\t" << res.y << "\n";
+		std::cout << j <<"/"<< res.k <<"\n";
 	} 
 		
 

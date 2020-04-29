@@ -51,8 +51,17 @@ void Minimizer::compute_num_estimation() {
 	d = h2 / h1;
 	H = h1 + h2;
 
+	(*right_point).second.num_estimation = (-d * (*left_point).second.y +
+		((pow(d, 2) - 1) * (*right_point).second.y / d) + (*point_after_right).second.y / d) / H;
+
+	h1 = (*right_point).first - (*left_point).first;
+	h2 = (*point_after_right).first - (*right_point).first;
+	d = h2 / h1;
+	H = h1 + h2;
+
 	(*point_after_right).second.num_estimation = (d * (*left_point).second.y -
 		( pow((1 + d), 2) * (*right_point).second.y / d) + (2 * d + 1) * (*point_after_right).second.y / d) / H;
+
 }
 
 bool Minimizer::isEnd() {
@@ -80,40 +89,80 @@ double Minimizer::get_M() {
 	dy = (*right_point).second.y - (*left_point).second.y;
 	
 	t1 = abs((*right_point).second.num_estimation - 
-		     (*left_point).second.num_estimation) / abs(dx);
-	t2 = -2 * (dy - (*left_point).second.num_estimation * dx) / pow(dx, 2);
-	t3 = 2 * (dy - (*right_point).second.num_estimation * dx) / pow(dx, 2);
+		     (*left_point).second.num_estimation) / dx;
+	t2 = 2 * abs((-dy + (*left_point).second.num_estimation * dx)) / pow(dx, 2);
+	t3 = 2 * abs((dy - (*right_point).second.num_estimation * dx)) / pow(dx, 2);
 	
 	return std::max({ t1, t2, t3 });
 }
 
 double Minimizer::get_d() {
-	return ((*right_point).first - (*left_point).first) / 2 -
+	return ((*right_point).first - (*left_point).first) / 2 +
 		   ((*right_point).second.num_estimation - 
 		   (*left_point).second.num_estimation) / (2 * m);
 }
 
 void Minimizer::compute_supposed_x() {
-	double tmp1, tmp2, tmp3;
-	tmp1 = ((*left_point).second.y - (*left_point).second.num_estimation * 
-		   (*left_point).first) - ((*right_point).second.y - 
-		   (*right_point).second.num_estimation * (*right_point).first) + 
-		   m * (pow((*right_point).first, 2) - pow((*left_point).first, 2)) / 2;
-	
-	tmp2 = m * ((*right_point).first - (*left_point).first) + 
-		   ((*right_point).second.num_estimation - 
-		   (*left_point).second.num_estimation);
-	
-	tmp3 = m * pow(get_d(), 2);
-	
-	(*right_point).second.supposed_x2 = (tmp1 - tmp3) / tmp2;
-	(*right_point).second.supposed_x3 = (tmp1 + tmp3) / tmp2;
+	double tmp1, tmp2, tmp3, phi2, phi3;
+	recalc = false;
 
-	(*right_point).second.supposed_x1 = (-(*left_point).second.num_estimation +
-		m * ((*right_point).second.supposed_x2 - (*left_point).first) +
-		m * (*right_point).first) / m;
+	while (true) {
+		// A
+		tmp1 = ((*left_point).second.y - (*left_point).second.num_estimation *
+			(*left_point).first) - ((*right_point).second.y -
+			(*right_point).second.num_estimation * (*right_point).first) +
+			m * (pow((*right_point).first, 2) - pow((*left_point).first, 2)) / 2;
+		
+		// B
+		tmp2 = m * ((*right_point).first - (*left_point).first) +
+			((*right_point).second.num_estimation -
+			(*left_point).second.num_estimation);
+
+		if (tmp2 < 0) {
+			printf("tmp2 < 0\n");
+			recalc = true;
+			m = (1 - ((*right_point).second.num_estimation -
+				(*left_point).second.num_estimation)) /
+				((*right_point).first - (*left_point).first);
+			continue;
+		}
+
+		tmp3 = m * pow(get_d(), 2);
+		(*right_point).second.supposed_x2 = (tmp1 - tmp3) / tmp2;
+		(*right_point).second.supposed_x3 = (tmp1 + tmp3) / tmp2;
+
+		if (((*right_point).second.supposed_x2 < (*left_point).first) ||
+			((*right_point).second.supposed_x3 > (*right_point).first)) {
+
+			if ((*right_point).second.supposed_x2 < (*left_point).first)
+				(*right_point).second.supposed_x2 = (*left_point).first;
+
+			if ((*right_point).second.supposed_x2 + get_d() >
+				(*right_point).first)
+				(*right_point).second.supposed_x2 = (*right_point).first - get_d();
+
+			(*right_point).second.supposed_x3 = (*right_point).second.supposed_x2 +
+				get_d();
+
+			phi2 = (*right_point).second.y - (*right_point).second.num_estimation *
+				((*right_point).first - (*right_point).second.supposed_x3) -
+				0.5 * m * pow((*right_point).first - (*right_point).second.supposed_x3, 2);
+
+			phi3 = get_A() * ((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2) +
+				0.5 * m * pow((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2, 2) +
+				get_B((*right_point).second.supposed_x2);
+
+			if (abs(phi3 - phi2) > abs(phi3) * 0.01) {
+				m += 2.0 * fabs(phi3 - phi2) / pow(get_d(), 2);
+				recalc = true;
+				continue;
+			}
+		}
+
+		break;
+	}
 }
-
+	
 double Minimizer::get_A() {
 	return (*left_point).second.num_estimation - 
 		   m * ((*right_point).second.supposed_x2 - (*left_point).first);
@@ -143,9 +192,10 @@ double Minimizer::auxiliary_function(double x) {
 
 	else if (x > (*right_point).second.supposed_x2 &&
 			 x <= (*right_point).first) {
-
+		printf("3 var\n");
+		
 		return (*right_point).second.y - (*right_point).second.num_estimation *
-			   (x - (*right_point).first) -
+			   ((*right_point).first - x) -
 			   0.5 * m * pow(x - (*right_point).first, 2);
 	}
 	else throw - 1;
@@ -167,85 +217,77 @@ double Minimizer::get_R() {
 	}
 }
 
+void Minimizer::update_m() {
+	M_Max *= m / new_m;
+	m = get_m();
+}
+
 void Minimizer::check_supposed_x() {
-	double _x = (*right_point).second.supposed_x2, x_ = (*right_point).second.supposed_x3,
-		x1 = (*left_point).first, x2 = (*right_point).first,
-		z1 = (*left_point).second.y, z2 = (*left_point).second.y,
-		z1_ = (*left_point).second.num_estimation, z2_ = (*right_point).second.num_estimation,
-		dx = ((*right_point).first - (*left_point).first) / 2 -
-		((*right_point).second.num_estimation -
-		(*left_point).second.num_estimation) / (2 * m),
-		phi2 = 0, phi3 = 0, A = 0, B = 0;
+	double old_M_Max, a, b, c, D, tmp_x1, tmp_x2, mult;
 
-	if ((_x < x1) || (x_ > x2)) {
-		if (_x < x1) {
-			_x = x1;
-			(*right_point).second.supposed_x2 = _x;
-		}
-
-
-		if (_x + dx > x2) {
-			_x = x2 - dx;
-			(*right_point).second.supposed_x2 = _x;
-		}
-		x_ = _x + dx;
-		(*right_point).second.supposed_x3 = x_;
-
-		phi2 = z2 - z2_ * (x2 - x_) - 0.5 * m * (x2 - x_) * (x2 - x_);
-		B = z1 + z1_ * (_x - x1) - 0.5 * m * (_x - x1) * (_x - x1);
-		A = z1_ - m * (_x - x1);
-		phi3 = A * (x_ - _x) + 0.5 * m * (x_ - _x) * (x_ - _x) + B;
-
-		if (fabs(phi3 - phi2) > fabs(phi3) * 0.01) {
-			m += 2.0 * fabs(phi3 - phi2) / (dx * dx);
-			recalc = true;
+	old_M_Max = M_Max;
+	for (reset(); right_point != points->end(); go_Next_interval()) {
+		a = 0.25 * pow((*right_point).first - (*left_point).first, 2);
+		b = -(*right_point).second.y + (*left_point).second.y + 0.5 *
+			((*right_point).second.num_estimation + (*left_point).second.num_estimation) *
+			((*right_point).first - (*left_point).first);
+		c = -pow((*right_point).second.num_estimation - (*left_point).second.num_estimation, 2) / 4;
+		D = b * b - 4 * a*c;
+		if (D > 0) {
+			tmp_x1 = (-b - sqrt(D)) / (2 * a);
+			tmp_x2 = (-b + sqrt(D)) / (2 * a);
+			M_Max = std::max(M_Max, std::max(abs(tmp_x1), abs(tmp_x2)));
 		}
 	}
+	mult = M_Max / old_M_Max;
+	if (mult <= 1.0) {
+		mult = 1.1;
+		M_Max *= mult;
+	}
+	m = get_m();
 }
 
 void Minimizer::recalc_characteristics() {
 	do {
-		recalc = false;
 		while (!pq->empty())
 			pq->pop();
+
 		for (reset(); right_point != points->end(); go_Next_interval()) {
+			new_m = m;
 			compute_supposed_x();
-			check_supposed_x();
-			if (recalc) break;
+			
+			if (recalc) {
+				update_m();
+				reset();
+				break;
+			}
+
+			if (((*right_point).second.supposed_x2 <= (*left_point).first ||
+				(*right_point).second.supposed_x3 >= (*right_point).first)) {
+				check_supposed_x();
+				reset();
+				break;
+			}
+			
+			
+			(*right_point).second.supposed_x1 = (-(*left_point).second.num_estimation +
+				m * ((*right_point).second.supposed_x2 - (*left_point).first) +
+				m * (*right_point).second.supposed_x2) / m; // supposed x1
 			(*right_point).second.R = get_R();
+			
 			pq->push(_interval({ (*left_point).first, (*left_point).second },
 				{ (*right_point).first, (*right_point).second }));
 		}
 	} while (right_point != points->end());
 }
 
-void Minimizer::compute_R(double new_point, double new_m) {
-	if (new_m != m) {
-		m = new_m;
-		recalc_characteristics();
-	}
-	else {
-		go_new_left_interval(new_point);
-		for (int i = 0;i < 2;++i, go_Next_interval()) {
-			compute_supposed_x();
-			check_supposed_x();
-			if (recalc) break;
-			(*right_point).second.R = get_R();
-			pq->push(_interval({ (*left_point).first, (*left_point).second },
-				{ (*right_point).first, (*right_point).second }));
-		}
-
-		if (recalc) recalc_characteristics();
-	}
+void Minimizer::compute_R(double new_point) {
+	m = new_m;
+	recalc_characteristics();
 }
 
 double Minimizer::get_m() {
-	if (M_Max > 0)
-		return r_p * M_Max;
-	else if (M_Max == 0)
-		return 1;
-	else
-		throw - 1;
+	return (M_Max > 1.0e-8) ? r_p * M_Max : 1.0;
 }
 
 void Minimizer::insert_to_map(double _x, double _y, double _R, 
@@ -270,8 +312,9 @@ void Minimizer::compare_interval_len(double new_point) {
 
 void Minimizer::compare_M(double new_point) {
 	double M;
-	go_new_left_interval(new_point);
-	for (int i = 0;i < 2;++i, go_Next_interval()) {
+	//go_new_left_interval(new_point);
+	M_Max = 0.0;
+	for (reset(); right_point != points->end(); go_Next_interval()) {
 		M = get_M();
 		if (M >= M_Max)
 			M_Max = M;
@@ -337,22 +380,20 @@ _result Minimizer::get_result() {
 }
 
 _result Minimizer::solve() {
-	//eps *= b - a;
+	eps *= b - a;
 	std::pair<double, double> new_point;
-	double new_m;
 	_interval search_interval;
 
 	perform_first_iteration(); // perform at the boundary points a and b 
 
 	while (!isEnd()) {
 		new_m = get_m();
-		compute_R(new_point.first, new_m);
+		compute_R(new_point.first);
 		search_interval = pq->top(); pq->pop();
 		new_point.first = get_new_point(search_interval);
-
 		new_point.second = (*function)(new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0, 0);
-		compute_num_estimation();
+		compute_num_estimation(); // maybe there is opportunity to optimize
 		compare_interval_len(new_point.first);
 		compare_M(new_point.first);
 	}
