@@ -237,7 +237,7 @@ void Minimizer::check_supposed_x() {
 		if (D > 0) {
 			tmp_x1 = (-b - sqrt(D)) / (2 * a);
 			tmp_x2 = (-b + sqrt(D)) / (2 * a);
-			M_Max = std::max(M_Max, std::max(abs(tmp_x1), abs(tmp_x2)));
+			M_Max = std::max({ M_Max, std::max(abs(tmp_x1), abs(tmp_x2)) });
 		}
 	}
 	mult = M_Max / old_M_Max;
