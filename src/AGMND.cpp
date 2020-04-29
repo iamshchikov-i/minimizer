@@ -1,4 +1,5 @@
 #include "AGMND.h"
+#include <algorithm>
 
 _characteristics::_characteristics() {}
 
