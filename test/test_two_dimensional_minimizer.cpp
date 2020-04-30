@@ -21,14 +21,15 @@ TEST(Two_Dimensional_Minimizer, throw_when_lower_border_more_than_upper_border) 
 }
 
 TEST(Two_Dimensional_Minimizer, can_find_min_f1) {
-	One_Dimensional_AGMND odm(0, 0, 0, nullptr), *p_odm = &odm;
+	One_Dimensional_AGMND odm(0, 0, 0, nullptr, 0.001, 1.1), *p_odm = &odm;
 	double(*fptr)(double, double) = f1;
 	result res;
 	double delta_x, delta_y, actual_x = 0.0, actual_y = 1.0;
 	point a(-5.22, -5.78), b(5.73, -5.1), c(-5.68, 5.34), d(5.08, 5.49);
-	Two_Dimensional_Minimizer m(p_odm, a.x, b.x, a.y, c.y, fptr);
+	Two_Dimensional_Minimizer m(p_odm, a.x, b.x, a.y, c.y, fptr, 0.001, 1.1);
 	m.solve();
 	res = m.get_result();
+
 	delta_x = std::abs(actual_x - res.x);
 	delta_y = std::abs(actual_y - res.y);
 

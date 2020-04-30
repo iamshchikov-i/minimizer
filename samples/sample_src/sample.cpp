@@ -21,8 +21,7 @@ void grish_fam();
 
 int main()
 {
-	One_Dimensional_AGP m();
-	
+	grish_fam();
 
 	return 0;
 }
@@ -40,13 +39,13 @@ void grish_fam() {
 	result res1;
 	result res2;
 
-	One_Dimensional_AGMND odm_agmnd(0, 0, 0, nullptr, eps_par, r1), *p_odm_agmnd = &odm_agmnd;
+	One_Dimensional_AGMND odm_agmnd(0, 0, 0, nullptr, eps_par / 10, r1), *p_odm_agmnd = &odm_agmnd;
 	One_Dimensional_AGP odm_agp(0, 0, 0, nullptr, eps_par, r1), *p_odm_agp = &odm_agp;
 	Two_Dimensional_Minimizer m1(p_odm_agp, lb[0], ub[0], lb[1], ub[1], fptr, eps_par, r2);
 	Two_Dimensional_Minimizer m2(p_odm_agmnd, lb[0], ub[0], lb[1], ub[1], fptr, eps_par, r2);
 
 	for (int j = 0; j < grishFam.GetFamilySize(); j++) {
-		r1 = 1.1, r2 = 1.1;
+		r1 = 2.0, r2 = 2.0;
 		i = j;
 		actual_x = grishFam[j]->GetOptimumPoint()[0], actual_y = grishFam[j]->GetOptimumPoint()[1];
 		grishFam[j]->GetBounds(lb, ub);
@@ -81,6 +80,7 @@ void grish_fam() {
 			}
 		} while (delta2[0] > eps || delta2[1] > eps);
 		printf("r1 = %f, r2 = %f, k_x = %d max_k_y = %d k = %d\n\n", r1, r2, res2.k_on_x, res2.k_max_on_y, res2.k);
+
 	}
 
 }
