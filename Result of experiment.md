@@ -1,4 +1,4 @@
-| Task number  | Number of processed points via General method(parameter r = 3.3)  | Number of processed points via AGMND(parameter r = 3.3)  | k1/k2  |
+| Task number  | Number of processed points via AGP(parameter r = 3.3)  | Number of processed points via AGMND(parameter r = 3.3)  | k1/k2  |
 | ------------ | ------------ | ------------ | ------------ |
 | 0 | 2451 | 2003 | 1.22366 |
 | 1 | 2327 | 1908 | 1.2196 |
@@ -103,7 +103,6 @@
 
 
 ###Using method is AGP
-
 | Task number  | Parameter r  | Number of processed points on X axis  | Max number of processed points on Y axis | Total number of processed points |
 | ------------ | ------------ | ------------ | ------------ | ------------ |
 | 0 | 1.2 | 19 | 26 | 283 |
@@ -209,7 +208,6 @@
 
 
 ###Using method is AGMND
-
 | Task number  | Parameter r  | Number of processed points on X axis  | Max number of processed points on Y axis | Total number of processed points |
 | ------------ | ------------ | ------------ | ------------ | ------------ |
 | 0 | 3.3 | 45 | 59 | 2003 |
