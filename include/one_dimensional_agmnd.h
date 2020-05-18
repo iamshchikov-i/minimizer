@@ -22,11 +22,13 @@ protected:
 		perform_first_iteration(), delete_containers();
 	double new_m, get_A(), get_B(double supposed_x2), get_d(),
 		auxiliary_function(double x);
-	void update_m(), compute_num_estimation(), compute_supposed_x(), check_supposed_x(), recalc_characteristics(), check_new_intervals(double new_point);
+	void update_m(), compute_num_estimation(), compute_supposed_x(),
+		check_supposed_x(), recalc_characteristics(),
+		check_new_intervals(double new_point);
 public:
 	One_Dimensional_AGMND(double _a, double _b, double _curr_x,
 		double(*f)(double x, double y),
-		double _eps = 0.0001, double _r_par = 2.0);
+		double _eps = 0.001, double _r_par = 2.0);
 	virtual result solve();
 	virtual void set_experiment(double _a, double _b,
 		double _curr_x, double(*f)(double x, double y), double _r_p);
