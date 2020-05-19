@@ -19,7 +19,8 @@ struct result {
 
 struct characteristics {
 	double z, R, num_estimation, supposed_x1, supposed_x2, supposed_x3,
-		auxiliary_function_x2, auxiliary_function_x3;
+		auxiliary_function_x2, auxiliary_function_x3, u;
+	int g, delta;
 	characteristics();
 	characteristics(double _z, double _R, double _num_estimation);
 };

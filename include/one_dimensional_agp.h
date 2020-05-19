@@ -1,5 +1,5 @@
-#ifndef __MINIMIZER_H__
-#define __MINIMIZER_H__
+#ifndef __ONE_DIMENSIONAL_AGP_H__
+#define __ONE_DIMENSIONAL_AGP_H__
 
 #include "one_dimensional_minimizer.h"
 
