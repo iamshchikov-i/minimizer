@@ -13,7 +13,7 @@ Two_Dimensional_Minimizer::Two_Dimensional_Minimizer(One_Dimensional_Minimizer* 
 
 void Two_Dimensional_Minimizer::perform_first_iteration(result* tmp_res) {
 	min_interval_length = b - a;
-	odm->set_experiment(lower_y, upper_y, a, function, odm->get_r());
+	odm->set_experiment(lower_y, upper_y, a, function);
 
 	*tmp_res = odm->solve();
 	res.k += tmp_res->k;

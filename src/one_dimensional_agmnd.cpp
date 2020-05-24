@@ -339,13 +339,14 @@ void One_Dimensional_AGMND::delete_containers() {
 	pq = nullptr;
 }
 
-void One_Dimensional_AGMND::set_experiment(double _a, double _b,
-	double _curr_x, double(*f)(double x, double y), double _r_p) {
+void One_Dimensional_AGMND::set_experiment(double _a, double _b, double _curr_x,
+	double(*f)(double x, double y),
+	double _eps, double _r_par) {
 	res.k = 0;
 	a = _a;
 	b = _b;
 	function = f;
-	r_p = _r_p;
+	r_p = _r_par;
 	curr_x = _curr_x;
 	recalc = false;
 	if (points == nullptr)

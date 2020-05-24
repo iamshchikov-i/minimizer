@@ -33,6 +33,12 @@ struct interval {
 		std::pair<double, characteristics> _s_point);
 };
 
+struct CompareR_min {
+	bool operator()(interval const& i1, interval const& i2) {
+		return i1.second_point.second.R < i2.second_point.second.R;
+	}
+};
+
 class One_Dimensional_Minimizer {
 protected:
 	double a, b, m, M_Max, eps, r_p, min_interval_length, curr_x;
@@ -54,9 +60,11 @@ public:
 	One_Dimensional_Minimizer(double _a, double _b, double _curr_x,
 		double(*f)(double x, double y),
 		double _eps = 0.001, double _r_par = 2.0);
+	virtual void set_experiment(double _a, double _b, double _curr_x,
+		double(*f)(double x, double y),
+		double _eps = 0.001, double _r_par = 2.0) = 0;
 	virtual ~One_Dimensional_Minimizer();
-	virtual void set_experiment(double _a, double _b,
-		double _curr_x, double(*f)(double x, double y), double _r_p) = 0;
+
 	result get_result();
 	virtual result solve() = 0;
 	double get_r();

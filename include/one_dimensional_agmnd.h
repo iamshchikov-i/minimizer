@@ -30,8 +30,9 @@ public:
 		double(*f)(double x, double y),
 		double _eps = 0.001, double _r_par = 2.0);
 	virtual result solve();
-	virtual void set_experiment(double _a, double _b,
-		double _curr_x, double(*f)(double x, double y), double _r_p);
+	void set_experiment(double _a, double _b, double _curr_x,
+		double(*f)(double x, double y),
+		double _eps = 0.001, double _r_par = 2.0);
 };
 
 #endif

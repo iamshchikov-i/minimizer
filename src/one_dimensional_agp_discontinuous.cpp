@@ -30,39 +30,42 @@ double One_Dimensional_AGP_D::get_m() {
 double One_Dimensional_AGP_D::get_R() {
 	double dx = (*right_point).first - (*left_point).first;
 	return (1 + (*right_point).second.g + (*left_point).second.g +
-		(*right_point).second.delta) * dx +
+		abs((*right_point).second.delta)) * dx +
 		(1 - (*right_point).second.g - (*left_point).second.g -
-		(*right_point).second.delta) * (pow((*right_point).second.z - (*left_point).second.z, 2) /
+		abs((*right_point).second.delta)) * (pow((*right_point).second.z - (*left_point).second.z, 2) /
 			pow(r_p * u_max, 2) * dx) - 
 		2 * ((1 - (*right_point).second.g) * (1 + (*left_point).second.g)  *
 			(1 - (*right_point).second.delta) * (*right_point).second.z + 
 			(1 + (*right_point).second.g) * (1 - (*left_point).second.g) * 
-			(1 + (*right_point).second.delta) * (*left_point).second.z / 
-			(r_p * u_max));
+			(1 + (*right_point).second.delta) * (*left_point).second.z) / 
+			(r_p * u_max);
 }
 
 double One_Dimensional_AGP_D::get_new_point(interval i) {
 	return 0.5*(i.first_point.first + i.second_point.first) -
 		(1 - i.second_point.second.g - i.first_point.second.g - 
-			i.second_point.second.delta) * 
+			abs(i.second_point.second.delta)) *
 			(i.second_point.second.z - i.first_point.second.z) / (2 * r_p * u_max);
 }
 
 double One_Dimensional_AGP_D::get_u() {
 	return (1 - (*right_point).second.g - (*left_point).second.g -
-		(*right_point).second.delta)*
+		abs((*right_point).second.delta))*
 		(abs((*right_point).second.z - (*left_point).second.z)) /
 			((*right_point).first - (*left_point).first);
 }
 
 void One_Dimensional_AGP_D::compute_u() {
 	reset();
+	u_sorted.clear();
 	for (; right_point != points->end(); go_Next_Interval()) {
 		(*right_point).second.u = get_u();
 		u_sorted.insert({ (*right_point).second.u, right_point });
 		if ((*right_point).second.u > u_max)
 			u_max = (*right_point).second.u;
 	}
+	if (u_max == 0.0)
+		u_max = 1.0;
 }
 
 void One_Dimensional_AGP_D::compute_p() {
@@ -71,7 +74,7 @@ void One_Dimensional_AGP_D::compute_p() {
 	u_right = u_left; u_right++;
 	for (int i = 1;u_right != u_sorted.end(); u_right++, i++) {
 		if ((u_left->first) / (u_right->first) >= Q)
-			if (i >= 1 && i < q * k_par) {
+			if (i >= 1 && i < q * u_sorted.size()) {
 				p = i;
 				return;
 			}
@@ -142,6 +145,7 @@ void One_Dimensional_AGP_D::perform_first_iteration() {
 		reset();
 		(*left_point).second.g = (*right_point).second.g = 0;
 		(*right_point).second.delta = 0;
+		p = 0;
 		u_max = get_u();
 		pq->push(interval({ (*left_point).first, (*left_point).second },
 			{ (*right_point).first, (*right_point).second }));
@@ -155,9 +159,26 @@ void One_Dimensional_AGP_D::delete_containers() {
 	pq = nullptr;
 }
 
-void One_Dimensional_AGP_D::set_experiment(double _a, double _b,
+void One_Dimensional_AGP_D::set_experiment(double _a, double _b, double _curr_x,
+	double(*f)(double x, double y),
+	double _eps, double _r_par) {
+	if (a > b)
+		throw "b is a right border, must be more than a";
+	res.k = 0;
+	a = _a;
+	b = _b;
+	curr_x = _curr_x;
+	function = f;
+	if (points == nullptr)
+		points = new std::map<double, characteristics>;
+	if (pq == nullptr)
+		pq = new std::priority_queue<interval, std::vector<interval>,
+		CompareR_min>;
+}
+
+void One_Dimensional_AGP_D::set_experiment_d(double _a, double _b,
 	double _curr_x, double(*f)(double x, double y), int _k_par, double _q,
-	double _Q, double _r_p) {
+	double _Q, double _eps, double _r_p) {
 	if (a > b)
 		throw "b is a right border, must be more than a";
 	k_par = _k_par;
@@ -166,6 +187,7 @@ void One_Dimensional_AGP_D::set_experiment(double _a, double _b,
 	res.k = 0;
 	a = _a;
 	b = _b;
+	eps = _eps;
 	r_p = _r_p;
 	curr_x = _curr_x;
 	function = f;
@@ -178,13 +200,12 @@ void One_Dimensional_AGP_D::set_experiment(double _a, double _b,
 
 result One_Dimensional_AGP_D::solve() {
 	std::pair<double, double> new_point;
-	double new_m;
 
 	perform_first_iteration();
 
 	while (min_interval_length > eps && k_par <= points->size()) {
 		compute_u();
-		compute_R(new_point.first, new_m);
+		compute_R(new_point.first, 0);
 		new_point.first = get_new_point(pq->top()); pq->pop();
 		new_point.second = (*function)(curr_x, new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0);
@@ -195,7 +216,7 @@ result One_Dimensional_AGP_D::solve() {
 	while (min_interval_length > eps) {
 		compute_u();
 		compute_p();
-		compute_R(new_point.first, new_m);
+		compute_R(new_point.first, 0);
 		new_point.first = get_new_point(pq->top()); pq->pop();
 		new_point.second = (*function)(curr_x, new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0);
