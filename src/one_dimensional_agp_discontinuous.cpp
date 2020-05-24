@@ -74,7 +74,7 @@ void One_Dimensional_AGP_D::compute_p() {
 	u_right = u_left; u_right++;
 	for (int i = 1;u_right != u_sorted.end(); u_right++, i++) {
 		if ((u_left->first) / (u_right->first) >= Q)
-			if (i >= 1 && i < q * k_par) {
+			if (i >= 1 && i < q * u_sorted.size()) {
 				p = i;
 				return;
 			}
