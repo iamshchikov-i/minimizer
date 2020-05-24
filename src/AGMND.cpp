@@ -322,9 +322,6 @@ _result Minimizer::solve() {
 		search_interval = pq->top(); pq->pop();
 		new_point.first = get_new_point(search_interval);
 
-		if (new_point.first <= a || new_point.first >= b)
-			printf("ahahhaha lol\n");
-
 		new_point.second = (*function)(new_point.first);
 		insert_to_map(new_point.first, new_point.second, 0, 0);
 

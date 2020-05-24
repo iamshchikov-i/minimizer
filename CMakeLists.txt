@@ -19,6 +19,7 @@ set(MINIMIZER_LIBRARY "${PROJECT_NAME}")
 set(MINIMIZER_TESTS_SEQ   "test_${PROJECT_NAME}_seq")
 set(MINIMIZER_TESTS_PAR   "test_${PROJECT_NAME}_par")
 set(MINIMIZER_TESTS_AGMND  "test_${PROJECT_NAME}_AGMND")
+set(MINIMIZER_TESTS_AGP_D  "test_${PROJECT_NAME}_AGP_D")
 set(MINIMIZER_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 include_directories("${MINIMIZER_INCLUDE}" gtest)
@@ -37,6 +38,8 @@ add_subdirectory(gtest)
 add_subdirectory(test_seq)
 add_subdirectory(test_par)
 add_subdirectory(test_AGMND)
+add_subdirectory(test_AGP_D)
+
 
 message( STATUS "")
 message( STATUS "General configuration for ${PROJECT_NAME}")

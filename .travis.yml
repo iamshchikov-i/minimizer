@@ -11,6 +11,8 @@ script:
 - make -j
 - cd ./bin/
 - ./test_minimizer_seq --gtest_list_tests
+- ./test_minimizer_AGMND --gtest_list_tests
+- ./test_minimizer_AGP_D --gtest_list_tests
 - mpirun -np 2 ./test_minimizer_par --gtest_list_tests
 - mpirun -np 5 ./test_minimizer_par --gtest_list_tests
 - mpirun -np 9 ./test_minimizer_par --gtest_list_tests
