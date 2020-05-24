@@ -1,4 +1,4 @@
-| Task number | r1 | Number of processed points via AGP(parameter r1) | r2 | Number of processed points via AGMND(parameter r2) | k1 / k2 |
+| Task number | r1 | Number of processed points via AGP(parameter r1) = k1 | r2 | Number of processed points via AGMND(parameter r2) = k2 | k1 / k2 |
 | ----------- | -- | -- | -- | -- | ------- |
 | 0 | 1.2 | 128 | 1.2 | 40 | 3.2 |
 | 1 | 1.2 | 71 | 1.2 | 33 | 2.15152 |
