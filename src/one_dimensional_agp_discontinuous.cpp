@@ -73,11 +73,14 @@ void One_Dimensional_AGP_D::compute_p() {
 	u_left = u_sorted.begin();
 	u_right = u_left; u_right++;
 	for (int i = 1;u_right != u_sorted.end(); u_right++, i++) {
-		if ((u_left->first) / (u_right->first) >= Q)
+		if ((u_left->first) / (u_right->first) >= Q) {
 			if (i >= 1 && i < q * u_sorted.size()) {
+				std::cout << "break point detected" << std::endl;
 				p = i;
 				return;
 			}
+		}
+			
 	}
 	p = 0;
 }

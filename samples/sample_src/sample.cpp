@@ -18,6 +18,7 @@ double f(double x, double y) {
 }
 
 void grish_fam();
+void get_odm_values();
 
 int main()
 {
@@ -51,8 +52,34 @@ void grish_fam() {
 		m.solve();
 		res = m.get_result();
 		//std::cout << res.k << std::endl;
-		std::cout <<res.k_on_x<<"/"<<res.k_max_on_y << std::endl;
+		//std::cout <<res.k_on_x<<"/"<<res.k_max_on_y << std::endl;
 
 	}
+
+}
+
+void get_odm_values() {
+	double h = 0.01;
+	double z, min_z, tmp;
+	vector<double> lb(2), ub(2);
+	
+	for (int j = 0; j < grishFam.GetFamilySize(); j++) {
+		i = j;
+		grishFam[i]->GetBounds(lb, ub);
+
+		for (double x = lb[0]; x < ub[0]; x += h) {
+			min_z = f(x, lb[1]);
+			for (double y = lb[1]; y < ub[1]; y += h) {
+				tmp = f(x, y);
+				if (tmp < min_z) {
+					min_z = tmp;
+				}
+			}
+
+			std::cout << x << ":" << min_z << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
 
 }
