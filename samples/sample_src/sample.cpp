@@ -23,6 +23,7 @@ void get_odm_values();
 int main()
 {
 	grish_fam();
+	//get_odm_values();
 
 	return 0;
 }
@@ -41,7 +42,7 @@ void grish_fam() {
 	Two_Dimensional_Minimizer m(p_odm_agp_d, lb[0], ub[0], lb[1], ub[1], fptr, eps_par, r);
 
 
-	for (int j = 0; j < grishFam.GetFamilySize(); j++) {
+	for (int j = 0; j < 1/*grishFam.GetFamilySize()*/; j++) {
 		r = 2.0;
 		i = j;
 		actual_x = grishFam[j]->GetOptimumPoint()[0], actual_y = grishFam[j]->GetOptimumPoint()[1];
@@ -51,19 +52,18 @@ void grish_fam() {
 		m.set_experiment(p_odm_agp_d, lb[0], ub[0], lb[1], ub[1], fptr, eps_par, r);
 		m.solve();
 		res = m.get_result();
-		//std::cout << res.k << std::endl;
-		//std::cout <<res.k_on_x<<"/"<<res.k_max_on_y << std::endl;
-
+		std::cout << res.k << std::endl;
+		std::cout <<res.k_on_x<<"/"<<res.k_max_on_y << std::endl;
 	}
 
 }
 
 void get_odm_values() {
-	double h = 0.01;
+	double h = 0.001;
 	double z, min_z, tmp;
 	vector<double> lb(2), ub(2);
 	
-	for (int j = 0; j < grishFam.GetFamilySize(); j++) {
+	for (int j = 95; j < 96; j++) {
 		i = j;
 		grishFam[i]->GetBounds(lb, ub);
 
