@@ -12,6 +12,8 @@ file(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/*.cpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/*.hpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/Grishagin/*.hpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/Grishagin/*.cpp
+					${CMAKE_CURRENT_SOURCE_DIR}/sample_src/GKLS/*.hpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/GKLS/*.cpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)

@@ -16,22 +16,25 @@ protected:
 	std::priority_queue<interval, std::vector<interval>, CompareR_max>* pq;
 	virtual bool isEnd();
 	virtual double get_M() , get_m(), get_R(), get_new_point(interval i);
-	virtual void compute_R(double new_point, double new_m),
-		insert_to_map(double _y, double _z, double _R, double _num_estimation),
-		compare_M(double new_point),
+	virtual void compute_R(std::vector<double> new_point, double new_m),
+		insert_to_map(std::vector<double> res_coords, double _z, double _R,
+			double _num_estimation),
+		compare_M(std::vector<double> new_point),
 		perform_first_iteration(), delete_containers();
 	double new_m, get_A(), get_B(double supposed_x2), get_d(),
 		auxiliary_function(double x);
 	void update_m(), compute_num_estimation(), compute_supposed_x(),
 		check_supposed_x(), recalc_characteristics(),
-		check_new_intervals(double new_point);
+		check_new_intervals(std::vector<double> new_point);
 public:
-	One_Dimensional_AGMND(double _a, double _b, double _curr_x,
-		double(*f)(double x, double y),
+	One_Dimensional_AGMND(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
+		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+		double(*f)(std::vector<double> x),
 		double _eps = 0.001, double _r_par = 2.0);
 	virtual result solve();
-	void set_experiment(double _a, double _b, double _curr_x,
-		double(*f)(double x, double y),
+	void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
+		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+		double(*f)(std::vector<double> x),
 		double _eps = 0.001, double _r_par = 2.0);
 };
 
