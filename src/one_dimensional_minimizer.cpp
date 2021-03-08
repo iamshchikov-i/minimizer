@@ -45,6 +45,9 @@ One_Dimensional_Minimizer::One_Dimensional_Minimizer(int _range, int _curr_dim, 
 	eps(_eps), r_p(_r_par) {
 	
 	points = new std::map<std::vector<double>, characteristics>;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &procnum);
 }
 
 One_Dimensional_Minimizer::~One_Dimensional_Minimizer() {

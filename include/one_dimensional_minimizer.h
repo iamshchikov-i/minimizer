@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <iostream>
 #include <utility>
+#include <set>
+
+#include "mpi.h"
 
 template <class T>
 void print(std::vector<T> vec) {
@@ -47,6 +50,7 @@ struct CompareR_min {
 
 class One_Dimensional_Minimizer {
 protected:
+	int procrank, procnum;
 	int curr_dim, range;
 	double m, M_Max, eps, r_p, min_interval_length;
 	std::vector<double> curr_x;

@@ -20,3 +20,4 @@ file(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/sample_src/*.cpp
 
 add_executable(${PROJECT_NAME_STR} ${SRC_FILES})
 target_link_libraries(sample ${MINIMIZER_LIBRARY})
+target_link_libraries(sample ${MPI_C_LIBRARIES})

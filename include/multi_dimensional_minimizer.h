@@ -4,6 +4,8 @@
 #include "one_dimensional_agmnd.h"
 #include "one_dimensional_agp.h"
 
+#include "mpi.h"
+
 enum class Upper_method { AGP, AGPD, AGMND };
 
 class Multi_Dimensional_Minimizer {

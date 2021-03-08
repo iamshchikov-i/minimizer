@@ -13,6 +13,7 @@
 //#include "one_dimensional_agp_discontinuous.h"
 //#include "two_dimensional_minimizer.h"
 #include "multi_dimensional_minimizer.h"
+
 using std::cout;
 
 int i;
@@ -30,9 +31,10 @@ double f_gkls(std::vector<double> coords) {
 
 void get_odm_values();
 
-int main()
+int main(int argc, char **argv)
 {
-	std::vector<int> task_nums = { 0 };
+	std::vector<int> task_nums = { 4 , 5 , 7 , 12 , 13 , 14 , 19 , 20 , 58 , 
+		59 , 60 , 66 , 76 , 81 , 82 , 85 , 89 , 91 , 92 , 94 , 95 };
 	std::string status_agp, status_agmnd;
 	result res_agp, res_agmnd;
 	double eps = 0.01;
@@ -40,7 +42,8 @@ int main()
 	std::vector<double> upper_bound;
 	
 	vector<double> lb, ub;
-
+	
+	MPI_Init(&argc, &argv);
 	for (int j : task_nums) {
 		i = j;
 		gklsFam[i]->GetBounds(lb, ub);
@@ -49,31 +52,47 @@ int main()
 			upper_bound.push_back(ub[k]);
 		}
 		
+		int procrank, procnum;
+
+		MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
+		MPI_Comm_size(MPI_COMM_WORLD, &procnum);
+		MPI_Barrier(MPI_COMM_WORLD);
+
 		Multi_Dimensional_Minimizer mdm_agp(range, lower_bound, upper_bound, f_gkls, Upper_method::AGP);
 		res_agp = mdm_agp.solve();
 
+		if (procrank == 0) {
+			double actual_res = gklsFam[i]->GetOptimumValue();
+			if (abs(abs(res_agp.z) - abs(actual_res)) <= eps)
+				status_agp = "OK";
+			else
+				status_agp = "Fail";
+
+			std::cout << "AGP " << j << " " << status_agp << " ";
+			print(res_agp.k);
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+
 		Multi_Dimensional_Minimizer mdm_agmnd(range, lower_bound, upper_bound, f_gkls, Upper_method::AGMND);
 		res_agmnd = mdm_agmnd.solve();
-		
-		double actual_res = gklsFam[i]->GetOptimumValue();
-		if (abs(abs(res_agp.z) - abs(actual_res)) <= eps)
-			status_agp = "OK";
-		else
-			status_agp = "Fail";
-		
-		if (abs(abs(res_agmnd.z) - abs(actual_res)) <= eps)
-			status_agmnd = "OK";
-		else
-			status_agmnd = "Fail";
-		
-		std::cout << "AGP " << j << " " << status_agp << " ";
-		print(res_agp.k);
 
-		std::cout << "AGMND " << j << " " << status_agmnd << " ";
-		print(res_agmnd.k);
-		std::cout << std::endl;
+		if (procrank == 0) {
+			double actual_res = gklsFam[i]->GetOptimumValue();
+
+			if (abs(abs(res_agmnd.z) - abs(actual_res)) <= eps)
+				status_agmnd = "OK";
+			else
+				status_agmnd = "Fail";
+
+			std::cout << "AGMND " << j << " " << status_agmnd << " ";
+			print(res_agmnd.k);
+			std::cout << std::endl;
+		}
+		
 	}
 
+	MPI_Finalize();
 	return 0;
 }
 

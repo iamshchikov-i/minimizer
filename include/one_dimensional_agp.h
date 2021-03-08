@@ -12,6 +12,8 @@ protected:
 		insert_to_map(std::vector<double> res_coords, double _z, double _R,
 			double _num_estimation = 0.0),
 		compare_M(std::vector<double> new_point), perform_first_iteration(), delete_containers();
+	void perform_first_parallel_step(std::pair<double, double>& new_point, result& tmp_res, double& new_m,
+		std::set<double>& processing_points, MPI_Status& st);
 public:
 	 void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		 std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
