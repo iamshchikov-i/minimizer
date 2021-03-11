@@ -20,11 +20,11 @@ private:
  public:
 	Multi_Dimensional_Minimizer(int _range, std::vector<double>& _lower_bound, 
 		std::vector<double>& _upper_bound,
-			  double(*f)(std::vector<double> coords), Upper_method up, double _eps = 0.001,
+			  double(*f)(std::vector<double> coords), Upper_method up, double _eps = 0.01,
 			  double _r_par = 2.0);
 	void set_experiment(int _range, std::vector<double>& _lower_bound,
 		std::vector<double>& _upper_bound,
-		double(*f)(std::vector<double> coords), double _eps = 0.001,
+		double(*f)(std::vector<double> coords), double _eps = 0.01,
 		double _r_par = 2.0);
 	result solve();
 };

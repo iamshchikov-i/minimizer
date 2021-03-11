@@ -8,7 +8,7 @@ One_Dimensional_AGP::One_Dimensional_AGP(int _range, int _curr_dim, std::vector<
 	pq = new std::priority_queue<interval, std::vector<interval>, CompareR_min>;
 }
 bool One_Dimensional_AGP::isEnd() {
-	return min_interval_length <= eps || points->size() > 10000;
+	return min_interval_length <= eps || points->size() > 1000;
 }
 
 double One_Dimensional_AGP::get_M() {

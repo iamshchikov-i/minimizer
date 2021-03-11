@@ -14,10 +14,12 @@
 //#include "two_dimensional_minimizer.h"
 #include "multi_dimensional_minimizer.h"
 
+#include <chrono>
+
 using std::cout;
 
 int i;
-int range = 2;
+int range = 4;
 TGrishaginProblemFamily grishFam;
 TGKLSProblemFamily gklsFam(range);
 
@@ -33,8 +35,7 @@ void get_odm_values();
 
 int main(int argc, char **argv)
 {
-	std::vector<int> task_nums = { 4 , 5 , 7 , 12 , 13 , 14 , 19 , 20 , 58 , 
-		59 , 60 , 66 , 76 , 81 , 82 , 85 , 89 , 91 , 92 , 94 , 95 };
+	std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
 	std::string status_agp, status_agmnd;
 	result res_agp, res_agmnd;
 	double eps = 0.01;
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
 	std::vector<double> upper_bound;
 	
 	vector<double> lb, ub;
+	std::chrono::time_point<std::chrono::steady_clock> begin, end;
+	std::chrono::milliseconds elapsed_ms_agp, elapsed_ms_agmnd;
 	
 	MPI_Init(&argc, &argv);
 	for (int j : task_nums) {
@@ -59,7 +62,17 @@ int main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		Multi_Dimensional_Minimizer mdm_agp(range, lower_bound, upper_bound, f_gkls, Upper_method::AGP);
+
+		if(procrank == 0)
+			begin = std::chrono::steady_clock::now();
 		res_agp = mdm_agp.solve();
+		MPI_Barrier(MPI_COMM_WORLD);
+		if (procrank == 0) {
+			end = std::chrono::steady_clock::now();
+
+			elapsed_ms_agp =
+				std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+		}
 
 		if (procrank == 0) {
 			double actual_res = gklsFam[i]->GetOptimumValue();
@@ -68,14 +81,24 @@ int main(int argc, char **argv)
 			else
 				status_agp = "Fail";
 
-			std::cout << "AGP " << j << " " << status_agp << " ";
-			print(res_agp.k);
+			std::cout << "AGP " << j << " " << status_agp << ", eps =  " << abs(abs(res_agp.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agp.count() << std::endl;
+			//print(res_agp.k);
 		}
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		Multi_Dimensional_Minimizer mdm_agmnd(range, lower_bound, upper_bound, f_gkls, Upper_method::AGMND);
+
+		if (procrank == 0)
+			begin = std::chrono::steady_clock::now();
 		res_agmnd = mdm_agmnd.solve();
+		MPI_Barrier(MPI_COMM_WORLD);
+		if (procrank == 0) {
+			end = std::chrono::steady_clock::now();
+
+			elapsed_ms_agmnd =
+				std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+		}
 
 		if (procrank == 0) {
 			double actual_res = gklsFam[i]->GetOptimumValue();
@@ -85,8 +108,8 @@ int main(int argc, char **argv)
 			else
 				status_agmnd = "Fail";
 
-			std::cout << "AGMND " << j << " " << status_agmnd << " ";
-			print(res_agmnd.k);
+			std::cout << "AMND " << j << " " << status_agmnd << ", eps =  " << abs(abs(res_agmnd.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agmnd.count() << std::endl;
+			//print(res_agmnd.k);
 			std::cout << std::endl;
 		}
 		
