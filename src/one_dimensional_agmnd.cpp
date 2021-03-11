@@ -9,7 +9,7 @@ One_Dimensional_AGMND::One_Dimensional_AGMND(int _range, int _curr_dim, std::vec
 }
 
 bool One_Dimensional_AGMND::isEnd() {
-	return min_interval_length <= eps || points->size() > 10000;
+	return min_interval_length <= eps || points->size() > 1000;
 }
 
 double One_Dimensional_AGMND::get_M() {
