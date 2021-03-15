@@ -3,12 +3,12 @@
 One_Dimensional_AGP::One_Dimensional_AGP(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) :
-	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _r_par) {
+	double _eps, int _Nmax, double _r_par) :
+	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _Nmax, _r_par) {
 	pq = new std::priority_queue<interval, std::vector<interval>, CompareR_min>;
 }
 bool One_Dimensional_AGP::isEnd() {
-	return min_interval_length <= eps || points->size() > 1000;
+	return min_interval_length <= eps || points->size() > Nmax;
 }
 
 double One_Dimensional_AGP::get_M() {
@@ -91,7 +91,7 @@ void One_Dimensional_AGP::perform_first_iteration() {
 	result tmp_res;
 
 	if (curr_dim != range - 1) {
-		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 		odm[curr_dim + 1]->solve();
 		tmp_res = odm[curr_dim + 1]->get_result();
 		res.coords = tmp_res.coords;
@@ -110,7 +110,7 @@ void One_Dimensional_AGP::perform_first_iteration() {
 
 		curr_x[curr_dim] = b;
 		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 			odm[curr_dim + 1]->solve();
 			tmp_res = odm[curr_dim + 1]->get_result();
 
@@ -140,7 +140,7 @@ void One_Dimensional_AGP::delete_containers() {
 void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) {
+	double _eps, int _Nmax, double _r_par) {
 
 	res.k = std::vector<int>(range, 0);
 	range = _range;
@@ -150,6 +150,7 @@ void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<
 	curr_x = _curr_x;
 	function = f;
 	eps = _eps;
+	Nmax = _Nmax;
 	r_p = _r_par;
     
     if (points == nullptr)
@@ -172,6 +173,7 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 		}
 
 		std::vector<double> data(range + 1);
+		std::vector<int> k(range);
 		MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 		processing_points.erase(data[0]);
 
@@ -183,6 +185,10 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 		insert_to_map(tmp_res.coords, tmp_res.z, 0);
 		compare_interval_len(curr_x);
 		compare_M(curr_x);
+
+		MPI_Recv(k.data(), k.size(), MPI_INT, st.MPI_SOURCE, st.MPI_SOURCE, MPI_COMM_WORLD, &st);
+		for (int i = curr_dim + 1; i < range; ++i)
+			res.k[i] += k[i];
 		
 	} else {
 		for (int i = 1; i < procnum; ++i) {
@@ -194,27 +200,25 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 		}
 
 		curr_x[curr_dim] = new_point.first;
-		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
-			odm[curr_dim + 1]->solve();
-			tmp_res = odm[curr_dim + 1]->get_result();
+		
+		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
+		odm[curr_dim + 1]->solve();
+		tmp_res = odm[curr_dim + 1]->get_result();
 
-			for (int i = curr_dim + 1; i < range; ++i)
-				res.k[i] += tmp_res.k[i];
-		}
-		else {
-			tmp_res.coords = curr_x;
-			tmp_res.z = (*function)(curr_x);
-		}
+		for (int i = curr_dim + 1; i < range; ++i)
+			res.k[i] += tmp_res.k[i];
+		
 
 		std::vector<double> data(tmp_res.coords);
 		data.push_back(tmp_res.z);
 		MPI_Send(data.data(), data.size(), MPI_DOUBLE, 0, procrank, MPI_COMM_WORLD);
+		MPI_Send(tmp_res.k.data(), tmp_res.k.size(), MPI_INT, 0, procrank, MPI_COMM_WORLD);
 	}
 }
 
 result One_Dimensional_AGP::solve() {
 	std::vector<double> data(range + 1);
+	std::vector<int> k(range);
 	std::set<double> processing_points;
 	result tmp_res;
 	MPI_Status st;
@@ -234,7 +238,7 @@ result One_Dimensional_AGP::solve() {
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 				odm[curr_dim + 1]->solve();
 				tmp_res = odm[curr_dim + 1]->get_result();
 
@@ -270,15 +274,20 @@ result One_Dimensional_AGP::solve() {
 				MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 				processing_points.erase(data[0]);
 
+				std::vector<double>::const_iterator first = data.begin();
+				std::vector<double>::const_iterator last = data.begin() + range;
+
 				tmp_res.z = data.back();
-				data.pop_back();
-				tmp_res.coords = data;
-				data.push_back(tmp_res.z);
+				tmp_res.coords = std::vector<double>(first, last);
 				curr_x = tmp_res.coords;
 
 				insert_to_map(tmp_res.coords, tmp_res.z, 0);
 				compare_interval_len(curr_x);
 				compare_M(curr_x);
+
+				MPI_Recv(k.data(), k.size(), MPI_INT, st.MPI_SOURCE, st.MPI_SOURCE, MPI_COMM_WORLD, &st);
+				for (int i = curr_dim + 1; i < range; ++i)
+					res.k[i] += k[i];
 			} else {
 				MPI_Recv(&new_point.first, 1, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 
@@ -287,22 +296,18 @@ result One_Dimensional_AGP::solve() {
 					
 				curr_x[curr_dim] = new_point.first;
 
-				if (curr_dim != range - 1) {
-					odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
-					odm[curr_dim + 1]->solve();
-					tmp_res = odm[curr_dim + 1]->get_result();
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
+				odm[curr_dim + 1]->solve();
+				tmp_res = odm[curr_dim + 1]->get_result();
 
-					for (int i = curr_dim + 1; i < range; ++i)
-						res.k[i] += tmp_res.k[i];
-				}
-				else {
-					tmp_res.coords = curr_x;
-					tmp_res.z = (*function)(curr_x);
-				}
+				for (int i = curr_dim + 1; i < range; ++i)
+					res.k[i] += tmp_res.k[i];
+				
 
 				std::vector<double> data(tmp_res.coords);
 				data.push_back(tmp_res.z);
 				MPI_Send(data.data(), data.size(), MPI_DOUBLE, 0, procrank, MPI_COMM_WORLD);
+				MPI_Send(tmp_res.k.data(), tmp_res.k.size(), MPI_INT, 0, procrank, MPI_COMM_WORLD);
 			}
 		}
 
@@ -311,6 +316,7 @@ result One_Dimensional_AGP::solve() {
 			while (processing_points.size() > 0) {
 				MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 				processing_points.erase(data[0]);
+				MPI_Recv(k.data(), k.size(), MPI_INT, st.MPI_SOURCE, st.MPI_SOURCE, MPI_COMM_WORLD, &st);
 
 				MPI_Send(&new_point.first, 1, MPI_DOUBLE, st.MPI_SOURCE, 0, MPI_COMM_WORLD);
 			}
@@ -323,7 +329,7 @@ result One_Dimensional_AGP::solve() {
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 				odm[curr_dim + 1]->solve();
 				tmp_res = odm[curr_dim + 1]->get_result();
 

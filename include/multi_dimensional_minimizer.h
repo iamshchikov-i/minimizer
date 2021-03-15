@@ -17,10 +17,11 @@ private:
 	double(*function)(std::vector<double> coords);
 	double eps;
 	double r_par;
+	int Nmax;
  public:
-	Multi_Dimensional_Minimizer(int _range, std::vector<double>& _lower_bound, 
-		std::vector<double>& _upper_bound,
-			  double(*f)(std::vector<double> coords), Upper_method up, double _eps = 0.01,
+	Multi_Dimensional_Minimizer(int _range, std::vector<double>& _lower_bound,
+		 std::vector<double>& _upper_bound,
+		 double(*f)(std::vector<double> coords), Upper_method up, double _eps = 0.01, int _Nmax = 1000,
 			  double _r_par = 2.0);
 	void set_experiment(int _range, std::vector<double>& _lower_bound,
 		std::vector<double>& _upper_bound,

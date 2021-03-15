@@ -15,6 +15,7 @@
 #include "multi_dimensional_minimizer.h"
 
 #include <chrono>
+#include <assert.h>
 
 using std::cout;
 
@@ -32,21 +33,41 @@ double f_gkls(std::vector<double> coords) {
 }
 
 void get_odm_values();
+bool check_result_coords(std::vector<double>& expected,
+	std::vector<double>& actual, double eps);
+void execExperiment(std::vector<int> task_nums, double eps_par, double r_par,
+	int Nmax, Upper_method um, double eps = 0.01);
 
 int main(int argc, char **argv)
 {
+	MPI_Init(&argc, &argv);
+
 	std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
-	std::string status_agp, status_agmnd;
-	result res_agp, res_agmnd;
 	double eps = 0.01;
+	double eps_par = 0.01, r_par = 2.5;
+	int Nmax = 1000;
+	
+	execExperiment(task_nums, eps_par, r_par, Nmax, Upper_method::AGP, eps);
+	execExperiment(task_nums, eps_par, r_par, Nmax, Upper_method::AGMND, eps);
+
+	MPI_Finalize();
+
+	return 0;
+}
+
+void execExperiment(std::vector<int> task_nums, double eps_par, double r_par,
+	int Nmax, Upper_method um, double eps) {
+	std::string status;
+	result result;
 	std::vector<double> lower_bound;
 	std::vector<double> upper_bound;
-	
+	std::vector<double> actual_res;
+	bool res;
+
 	vector<double> lb, ub;
 	std::chrono::time_point<std::chrono::steady_clock> begin, end;
 	std::chrono::milliseconds elapsed_ms_agp, elapsed_ms_agmnd;
-	
-	MPI_Init(&argc, &argv);
+
 	for (int j : task_nums) {
 		i = j;
 		gklsFam[i]->GetBounds(lb, ub);
@@ -54,18 +75,19 @@ int main(int argc, char **argv)
 			lower_bound.push_back(lb[k]);
 			upper_bound.push_back(ub[k]);
 		}
-		
+
 		int procrank, procnum;
 
 		MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
 		MPI_Comm_size(MPI_COMM_WORLD, &procnum);
 		MPI_Barrier(MPI_COMM_WORLD);
 
-		Multi_Dimensional_Minimizer mdm_agp(range, lower_bound, upper_bound, f_gkls, Upper_method::AGP);
 
-		if(procrank == 0)
+		Multi_Dimensional_Minimizer mdm(range, lower_bound, upper_bound, f_gkls, um, eps_par, Nmax, r_par);
+
+		if (procrank == 0)
 			begin = std::chrono::steady_clock::now();
-		res_agp = mdm_agp.solve();
+		result = mdm.solve();
 		MPI_Barrier(MPI_COMM_WORLD);
 		if (procrank == 0) {
 			end = std::chrono::steady_clock::now();
@@ -74,49 +96,41 @@ int main(int argc, char **argv)
 				std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 		}
 
+		std::string type;
+		if (um == Upper_method::AGP)
+			type = "AGP";
+		else if (um == Upper_method::AGMND)
+			type = "AGMND";
+		else throw - 1;
+
 		if (procrank == 0) {
-			double actual_res = gklsFam[i]->GetOptimumValue();
-			if (abs(abs(res_agp.z) - abs(actual_res)) <= eps)
-				status_agp = "OK";
+			actual_res = gklsFam[i]->GetOptimumPoint();
+			res = check_result_coords(result.coords, actual_res, eps);
+			if (res)
+				status = "OK";
 			else
-				status_agp = "Fail";
-
-			std::cout << "AGP " << j << " " << status_agp << ", eps =  " << abs(abs(res_agp.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agp.count() << std::endl;
-			//print(res_agp.k);
-		}
-
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		Multi_Dimensional_Minimizer mdm_agmnd(range, lower_bound, upper_bound, f_gkls, Upper_method::AGMND);
-
-		if (procrank == 0)
-			begin = std::chrono::steady_clock::now();
-		res_agmnd = mdm_agmnd.solve();
-		MPI_Barrier(MPI_COMM_WORLD);
-		if (procrank == 0) {
-			end = std::chrono::steady_clock::now();
-
-			elapsed_ms_agmnd =
-				std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		}
-
-		if (procrank == 0) {
-			double actual_res = gklsFam[i]->GetOptimumValue();
-
-			if (abs(abs(res_agmnd.z) - abs(actual_res)) <= eps)
-				status_agmnd = "OK";
-			else
-				status_agmnd = "Fail";
-
-			std::cout << "AMND " << j << " " << status_agmnd << ", eps =  " << abs(abs(res_agmnd.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agmnd.count() << std::endl;
-			//print(res_agmnd.k);
+				status = "Fail";
+			std::cout << type << j << " " << status << ", total time = " << elapsed_ms_agp.count() << std::endl;
+			std::cout << "number of processed points: ";
+			print(result.k);
 			std::cout << std::endl;
 		}
-		
+	}
+}
+
+bool check_result_coords(std::vector<double>& expected,
+	std::vector<double>& actual, double eps) {
+	bool status = true;
+
+	assert(expected.size() == actual.size());
+	for (int i = 0; i < actual.size(); ++i) {
+		if (abs(expected[i] - actual[i]) > eps) {
+			std::cout << "coords " << i << " are too much different " << expected[i] << " " << actual[i] << std::endl;
+			status = false;
+		}
 	}
 
-	MPI_Finalize();
-	return 0;
+	return status;
 }
 
 void get_odm_values() {

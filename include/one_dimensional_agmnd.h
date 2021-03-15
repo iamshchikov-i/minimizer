@@ -30,12 +30,12 @@ public:
 	One_Dimensional_AGMND(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 		double(*f)(std::vector<double> x),
-		double _eps = 0.001, double _r_par = 2.0);
+		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
 	virtual result solve();
 	void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 		double(*f)(std::vector<double> x),
-		double _eps = 0.001, double _r_par = 2.0);
+		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
 };
 
 #endif
