@@ -3,13 +3,13 @@
 One_Dimensional_AGMND::One_Dimensional_AGMND(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) : One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _r_par) {
+	double _eps, int __Nmax, double _r_par) : One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, __Nmax, _r_par) {
 	pq = new std::priority_queue<interval, std::vector<interval>, CompareR_max>;
 	recalc = false;
 }
 
 bool One_Dimensional_AGMND::isEnd() {
-	return min_interval_length <= eps || points->size() > 1000;
+	return min_interval_length <= eps || points->size() > Nmax;
 }
 
 double One_Dimensional_AGMND::get_M() {
@@ -345,7 +345,7 @@ void One_Dimensional_AGMND::delete_containers() {
 void One_Dimensional_AGMND::set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) {
+	double _eps, int _Nmax, double _r_par) {
 	
 	res.k = std::vector<int>(range, 0);
 	range = _range;
@@ -355,6 +355,7 @@ void One_Dimensional_AGMND::set_experiment(int _range, int _curr_dim, std::vecto
 	curr_x = _curr_x;
 	function = f;
 	eps = _eps;
+	Nmax = _Nmax;
 	r_p = _r_par;
 	recalc = false;
 	if (points == nullptr)

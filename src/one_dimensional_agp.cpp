@@ -3,12 +3,12 @@
 One_Dimensional_AGP::One_Dimensional_AGP(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) :
-	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _r_par) {
+	double _eps, int _Nmax, double _r_par) :
+	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _Nmax, _r_par) {
 	pq = new std::priority_queue<interval, std::vector<interval>, CompareR_min>;
 }
 bool One_Dimensional_AGP::isEnd() {
-	return min_interval_length <= eps || points->size() > 1000;
+	return min_interval_length <= eps || points->size() > Nmax;
 }
 
 double One_Dimensional_AGP::get_M() {
@@ -91,7 +91,7 @@ void One_Dimensional_AGP::perform_first_iteration() {
 	result tmp_res;
 
 	if (curr_dim != range - 1) {
-		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 		odm[curr_dim + 1]->solve();
 		tmp_res = odm[curr_dim + 1]->get_result();
 		res.coords = tmp_res.coords;
@@ -110,7 +110,7 @@ void One_Dimensional_AGP::perform_first_iteration() {
 
 		curr_x[curr_dim] = b;
 		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 			odm[curr_dim + 1]->solve();
 			tmp_res = odm[curr_dim + 1]->get_result();
 
@@ -140,7 +140,7 @@ void One_Dimensional_AGP::delete_containers() {
 void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) {
+	double _eps, int _Nmax, double _r_par) {
 
 	res.k = std::vector<int>(range, 0);
 	range = _range;
@@ -150,6 +150,7 @@ void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<
 	curr_x = _curr_x;
 	function = f;
 	eps = _eps;
+	Nmax = _Nmax;
 	r_p = _r_par;
     
     if (points == nullptr)
@@ -176,7 +177,7 @@ result One_Dimensional_AGP::solve() {
 		
 		curr_x[curr_dim] = new_point.first;
 		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function);
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
 			odm[curr_dim + 1]->solve();
 			tmp_res = odm[curr_dim + 1]->get_result();
 

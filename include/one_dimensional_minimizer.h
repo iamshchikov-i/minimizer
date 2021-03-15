@@ -47,7 +47,7 @@ struct CompareR_min {
 
 class One_Dimensional_Minimizer {
 protected:
-	int curr_dim, range;
+	int curr_dim, range, Nmax;
 	double m, M_Max, eps, r_p, min_interval_length;
 	std::vector<double> curr_x;
 	std::vector<One_Dimensional_Minimizer*> odm;
@@ -71,11 +71,11 @@ public:
 	One_Dimensional_Minimizer(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 		double(*f)(std::vector<double> x),
-		double _eps = 0.001, double _r_par = 2.0);
+		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
 	virtual void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 		double(*f)(std::vector<double> x),
-		double _eps = 0.001, double _r_par = 2.0) = 0;
+		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0) = 0;
 	virtual ~One_Dimensional_Minimizer();
 
 	result get_result();

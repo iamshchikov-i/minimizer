@@ -16,6 +16,7 @@
 using std::cout;
 
 #include <chrono>
+#include <assert.h>
 
 int i;
 int range = 4;
@@ -31,6 +32,8 @@ double f_gkls(std::vector<double> coords) {
 }
 
 void get_odm_values();
+bool check_result_coords(std::vector<double>& expected,
+						 std::vector<double>& actual, double eps);
 
 int main()
 {
@@ -38,6 +41,8 @@ int main()
 	std::string status_agp, status_agmnd;
 	result res_agp, res_agmnd;
 	double eps = 0.01;
+	double eps_par = 0.0000001, r_par = 2.5;
+	int Nmax = 1000;
 	std::vector<double> lower_bound;
 	std::vector<double> upper_bound;
 
@@ -54,7 +59,7 @@ int main()
 			upper_bound.push_back(ub[k]);
 		}
 
-		Multi_Dimensional_Minimizer mdm_agp(range, lower_bound, upper_bound, f_gkls, Upper_method::AGP);
+		Multi_Dimensional_Minimizer mdm_agp(range, lower_bound, upper_bound, f_gkls, Upper_method::AGP, eps_par, Nmax, r_par);
 
 		begin = std::chrono::steady_clock::now();
 		res_agp = mdm_agp.solve();
@@ -63,7 +68,18 @@ int main()
 		elapsed_ms_agp =
 			std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
-		Multi_Dimensional_Minimizer mdm_agmnd(range, lower_bound, upper_bound, f_gkls, Upper_method::AGMND);
+		vector<double> actual_res = gklsFam[i]->GetOptimumPoint();
+		bool res = check_result_coords(res_agp.coords, actual_res, eps);
+		if (res)
+			status_agp = "OK";
+		else
+			status_agp = "Fail";
+		std::cout << "AGP " << j << " " << status_agp << ", total time = " << elapsed_ms_agp.count() << std::endl;
+		std::cout << "number of processed points: ";
+		print(res_agp.k);
+		std::cout << std::endl;
+
+		Multi_Dimensional_Minimizer mdm_agmnd(range, lower_bound, upper_bound, f_gkls, Upper_method::AGMND, eps_par, Nmax, r_par);
 
 		begin = std::chrono::steady_clock::now();
 		res_agmnd = mdm_agmnd.solve();
@@ -72,26 +88,33 @@ int main()
 		elapsed_ms_agmnd =
 			std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
-		double actual_res = gklsFam[i]->GetOptimumValue();
-		if (abs(abs(res_agp.z) - abs(actual_res)) <= eps)
-			status_agp = "OK";
-		else
-			status_agp = "Fail";
-
-		if (abs(abs(res_agmnd.z) - abs(actual_res)) <= eps)
+		res = check_result_coords(res_agmnd.coords, actual_res, eps);
+		if (res)
 			status_agmnd = "OK";
 		else
 			status_agmnd = "Fail";
-
-		std::cout << "AGP " << j << " " << status_agp << ", eps =  " << abs(abs(res_agp.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agp.count() << std::endl;
-		//print(res_agp.k);
-
-		std::cout << "AMND " << j << " " << status_agmnd << ", eps =  " << abs(abs(res_agmnd.z) - abs(actual_res)) << ", total time = " << elapsed_ms_agmnd.count() << std::endl;
-		//print(res_agmnd.k);
-		//std::cout << std::endl;
+		std::cout << "AGMND " << j << " " << status_agmnd << ", total time = " << elapsed_ms_agmnd.count() << std::endl;
+		std::cout << "number of processed points: ";
+		print(res_agmnd.k);
+		std::cout << std::endl << std::endl;
 	}
 
 	return 0;
+}
+
+bool check_result_coords(std::vector<double>& expected,
+						 std::vector<double>& actual, double eps) {
+	bool status = true;
+
+	assert(expected.size() == actual.size());
+	for (int i = 0; i < actual.size(); ++i) {
+		if (abs(expected[i] - actual[i]) > eps) {
+			std::cout << "coords " << i << " are too much different " << expected[i] << " " << actual[i] << std::endl;
+			status = false;
+		}
+	}
+
+	return status;
 }
 
 void get_odm_values() {

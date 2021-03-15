@@ -40,9 +40,9 @@ void One_Dimensional_Minimizer::compare_interval_len(std::vector<double> new_poi
 One_Dimensional_Minimizer::One_Dimensional_Minimizer(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
 	double(*f)(std::vector<double> x),
-	double _eps, double _r_par) : range(_range), curr_dim(_curr_dim), odm(_odm),
+	double _eps, int _Nmax, double _r_par) : range(_range), curr_dim(_curr_dim), odm(_odm),
 	bounds(_bounds), curr_x(_curr_x), function(f),
-	eps(_eps), r_p(_r_par) {
+	eps(_eps), Nmax(_Nmax), r_p(_r_par) {
 	
 	points = new std::map<std::vector<double>, characteristics>;
 }
