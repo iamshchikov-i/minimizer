@@ -18,8 +18,21 @@ using std::cout;
 #include <chrono>
 #include <assert.h>
 
+struct ResultInfo {
+	int successCount;
+	int failCount;
+	double averageTime;
+	double totalTime;
+
+ResultInfo(int _successCount, int _failCount, double _averageTime, double _totalTime);
+};
+ResultInfo::ResultInfo(int _successCount, int _failCount, double _averageTime, double _totalTime) :
+	successCount(_successCount), failCount(_failCount), 
+	averageTime(_averageTime), totalTime(_totalTime) {}
+
 int i;
 int range = 4;
+
 TGrishaginProblemFamily grishFam;
 TGKLSProblemFamily gklsFam(range);
 
@@ -37,12 +50,12 @@ bool check_result_coords(std::vector<double>& expected,
 
 int main()
 {
-	std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
+	//std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
 	std::string status_agp, status_agmnd;
 	result res_agp, res_agmnd;
 	double eps = 0.01;
-	double eps_par = 0.0000001, r_par = 2.5;
-	int Nmax = 1000;
+	double eps_par = 0.001, r_par = 2.5;
+	int Nmax = 100000000;
 	std::vector<double> lower_bound;
 	std::vector<double> upper_bound;
 
@@ -51,7 +64,10 @@ int main()
 	std::chrono::time_point<std::chrono::steady_clock> begin, end;
 	std::chrono::milliseconds elapsed_ms_agp, elapsed_ms_agmnd;
 
-	for (int j : task_nums) {
+	int taskNumber = gklsFam.GetFamilySize();
+	ResultInfo resInfoAgp(0, 0, 0.0, 0.0), resInfoAgmnd(0, 0, 0.0, 0.0);
+
+	for (int j = 0; j < taskNumber; ++j) {
 		i = j;
 		gklsFam[i]->GetBounds(lb, ub);
 		for (int k = 0; k < range; ++k) {
@@ -70,10 +86,15 @@ int main()
 
 		vector<double> actual_res = gklsFam[i]->GetOptimumPoint();
 		bool res = check_result_coords(res_agp.coords, actual_res, eps);
-		if (res)
+		if (res) {
 			status_agp = "OK";
-		else
+			resInfoAgp.successCount++;
+		} else {
 			status_agp = "Fail";
+			resInfoAgp.failCount++;
+		}
+		resInfoAgp.totalTime += elapsed_ms_agp.count();
+			
 		std::cout << "AGP " << j << " " << status_agp << ", total time = " << elapsed_ms_agp.count() << std::endl;
 		std::cout << "number of processed points: ";
 		print(res_agp.k);
@@ -89,15 +110,29 @@ int main()
 			std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
 		res = check_result_coords(res_agmnd.coords, actual_res, eps);
-		if (res)
+		if (res) {
 			status_agmnd = "OK";
-		else
+			resInfoAgmnd.successCount++;
+		}
+		else {
 			status_agmnd = "Fail";
+			resInfoAgmnd.failCount++;
+		}
+		resInfoAgmnd.totalTime += elapsed_ms_agmnd.count();
+
 		std::cout << "AGMND " << j << " " << status_agmnd << ", total time = " << elapsed_ms_agmnd.count() << std::endl;
 		std::cout << "number of processed points: ";
 		print(res_agmnd.k);
 		std::cout << std::endl << std::endl;
 	}
+	resInfoAgp.averageTime = resInfoAgp.totalTime / taskNumber;
+	resInfoAgmnd.averageTime = resInfoAgmnd.totalTime / taskNumber;
+
+	std::cout << "AGP\n" << "success-count fail-count average-time\n";
+	std::cout << resInfoAgp.successCount << " " << resInfoAgp.failCount << " " << resInfoAgp.averageTime << std::endl;
+
+	std::cout << "AGMND\n" << "success-count fail-count average-time\n";
+	std::cout << resInfoAgmnd.successCount << " " << resInfoAgmnd.failCount << " " << resInfoAgmnd.averageTime << std::endl;
 
 	return 0;
 }
