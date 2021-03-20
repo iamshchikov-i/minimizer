@@ -16,11 +16,25 @@
 
 #include <chrono>
 #include <assert.h>
+#include <map>
 
 using std::cout;
 
+struct ResultInfo {
+	int successCount;
+	int failCount;
+	double averageTime;
+	double totalTime;
+
+	ResultInfo(int _successCount, int _failCount, double _averageTime, double _totalTime);
+};
+ResultInfo::ResultInfo(int _successCount, int _failCount, double _averageTime, double _totalTime) :
+	successCount(_successCount), failCount(_failCount),
+	averageTime(_averageTime), totalTime(_totalTime) {}
+
 int i;
-int range = 4;
+int procrank;
+int range = 2;
 TGrishaginProblemFamily grishFam;
 TGKLSProblemFamily gklsFam(range);
 
@@ -35,27 +49,48 @@ double f_gkls(std::vector<double> coords) {
 void get_odm_values();
 bool check_result_coords(std::vector<double>& expected,
 	std::vector<double>& actual, double eps);
-void execExperiment(std::vector<int> task_nums, double eps_par, double r_par,
+void execExperiment(int task_num, double eps_par, double r_par,
 	int Nmax, Upper_method um, double eps = 0.01);
+
+ResultInfo resInfoAgp(0, 0, 0.0, 0.0), resInfoAgmnd(0, 0, 0.0, 0.0);
+std::map<std::string, ResultInfo*> resultsInfo;
 
 int main(int argc, char **argv)
 {
 	MPI_Init(&argc, &argv);
 
-	std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
+	//std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
 	double eps = 0.01;
-	double eps_par = 0.01, r_par = 2.5;
-	int Nmax = 1000;
+	double eps_par = 0.001, r_par = 2.5;
+	int Nmax = 100000000;
+
+	int taskNumber = gklsFam.GetFamilySize();
+	resultsInfo.insert({ "AGP", &resInfoAgp });
+	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
+
+	for (int j = 0; j < taskNumber; ++j) {
+		execExperiment(j, eps_par, r_par, Nmax, Upper_method::AGP, eps);
+		execExperiment(j, eps_par, r_par, Nmax, Upper_method::AGMND, eps);
+	}
 	
-	execExperiment(task_nums, eps_par, r_par, Nmax, Upper_method::AGP, eps);
-	execExperiment(task_nums, eps_par, r_par, Nmax, Upper_method::AGMND, eps);
+	if (procrank == 0) {
+		resInfoAgp.averageTime = resInfoAgp.totalTime / taskNumber;
+		resInfoAgmnd.averageTime = resInfoAgmnd.totalTime / taskNumber;
+
+		std::cout << "AGP\n" << "success-count fail-count average-time\n";
+		std::cout << resInfoAgp.successCount << " " << resInfoAgp.failCount << " " << resInfoAgp.averageTime << std::endl;
+
+		std::cout << "AGMND\n" << "success-count fail-count average-time\n";
+		std::cout << resInfoAgmnd.successCount << " " << resInfoAgmnd.failCount << " " << resInfoAgmnd.averageTime << std::endl;
+
+	}
 
 	MPI_Finalize();
 
 	return 0;
 }
 
-void execExperiment(std::vector<int> task_nums, double eps_par, double r_par,
+void execExperiment(int task_num, double eps_par, double r_par,
 	int Nmax, Upper_method um, double eps) {
 	std::string status;
 	result result;
@@ -66,55 +101,59 @@ void execExperiment(std::vector<int> task_nums, double eps_par, double r_par,
 
 	vector<double> lb, ub;
 	std::chrono::time_point<std::chrono::steady_clock> begin, end;
-	std::chrono::milliseconds elapsed_ms_agp, elapsed_ms_agmnd;
+	std::chrono::milliseconds elapsed_ms;
 
-	for (int j : task_nums) {
-		i = j;
-		gklsFam[i]->GetBounds(lb, ub);
-		for (int k = 0; k < range; ++k) {
-			lower_bound.push_back(lb[k]);
-			upper_bound.push_back(ub[k]);
+	int j = task_num;
+	i = j;
+	gklsFam[i]->GetBounds(lb, ub);
+	for (int k = 0; k < range; ++k) {
+		lower_bound.push_back(lb[k]);
+		upper_bound.push_back(ub[k]);
+	}
+
+	int procnum;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
+	MPI_Comm_size(MPI_COMM_WORLD, &procnum);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+
+	Multi_Dimensional_Minimizer mdm(range, lower_bound, upper_bound, f_gkls, um, eps_par, Nmax, r_par);
+
+	if (procrank == 0)
+		begin = std::chrono::steady_clock::now();
+	result = mdm.solve();
+	MPI_Barrier(MPI_COMM_WORLD);
+	if (procrank == 0) {
+		end = std::chrono::steady_clock::now();
+
+		elapsed_ms =
+			std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+	}
+
+	std::string type;
+	if (um == Upper_method::AGP)
+		type = "AGP";
+	else if (um == Upper_method::AGMND)
+		type = "AGMND";
+	else throw - 1;
+
+	if (procrank == 0) {
+		actual_res = gklsFam[i]->GetOptimumPoint();
+		res = check_result_coords(result.coords, actual_res, eps);
+		if (res) {
+			status = "OK";
+			resultsInfo[type]->successCount++;
+		} else {
+			status = "Fail";
+			resultsInfo[type]->failCount++;
 		}
-
-		int procrank, procnum;
-
-		MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
-		MPI_Comm_size(MPI_COMM_WORLD, &procnum);
-		MPI_Barrier(MPI_COMM_WORLD);
-
-
-		Multi_Dimensional_Minimizer mdm(range, lower_bound, upper_bound, f_gkls, um, eps_par, Nmax, r_par);
-
-		if (procrank == 0)
-			begin = std::chrono::steady_clock::now();
-		result = mdm.solve();
-		MPI_Barrier(MPI_COMM_WORLD);
-		if (procrank == 0) {
-			end = std::chrono::steady_clock::now();
-
-			elapsed_ms_agp =
-				std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-		}
-
-		std::string type;
-		if (um == Upper_method::AGP)
-			type = "AGP";
-		else if (um == Upper_method::AGMND)
-			type = "AGMND";
-		else throw - 1;
-
-		if (procrank == 0) {
-			actual_res = gklsFam[i]->GetOptimumPoint();
-			res = check_result_coords(result.coords, actual_res, eps);
-			if (res)
-				status = "OK";
-			else
-				status = "Fail";
-			std::cout << type << j << " " << status << ", total time = " << elapsed_ms_agp.count() << std::endl;
-			std::cout << "number of processed points: ";
-			print(result.k);
-			std::cout << std::endl;
-		}
+		resultsInfo[type]->totalTime += elapsed_ms.count();
+			
+		std::cout << type << j << " " << status << ", total time = " << elapsed_ms.count() << std::endl;
+		std::cout << "number of processed points: ";
+		print(result.k);
+		std::cout << std::endl;
 	}
 }
 
