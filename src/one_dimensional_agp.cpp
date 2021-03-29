@@ -162,20 +162,25 @@ void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<
 
 void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 	double>& new_point, result& tmp_res, double& new_m, 
-	std::set<double>& processing_points, MPI_Status& st) {
+	std::map<int, std::pair<double, double>>& processing_intervals_map, 
+	std::set<std::pair<double, double>>& processing_intervals_set, MPI_Status& st) {
 	new_m = get_m();
 	compute_R(curr_x, new_m);
 
 	if (procrank == 0) {
 		for (int i = 1; i < procnum; ++i) {
-			processing_points.insert(get_new_point(pq->top()));
+			auto interval = pq->top();
+			processing_intervals_map.insert({i, {interval.first_point.first[0], interval.second_point.first[0]}});
+			processing_intervals_set.insert({ interval.first_point.first[0], interval.second_point.first[0] });
 			pq->pop();
 		}
 
 		std::vector<double> data(range + 1);
 		std::vector<int> k(range);
 		MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-		processing_points.erase(data[0]);
+		processing_intervals_set.erase(processing_intervals_map[st.MPI_SOURCE]);
+		processing_intervals_map.erase(st.MPI_SOURCE);
+		
 
 		tmp_res.z = data.back();
 		data.pop_back();
@@ -219,7 +224,9 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 result One_Dimensional_AGP::solve() {
 	std::vector<double> data(range + 1);
 	std::vector<int> k(range);
-	std::set<double> processing_points;
+	std::map<int, std::pair<double, double>> processing_intervals_map;
+	std::set<std::pair<double, double>> processing_intervals_set;
+	std::pair<double, double> tmp_interval;
 	result tmp_res;
 	MPI_Status st;
 	if (curr_dim == 0) {
@@ -256,7 +263,8 @@ result One_Dimensional_AGP::solve() {
 			compare_M(curr_x);
 		}
 
-		perform_first_parallel_step(new_point, tmp_res, new_m, processing_points, st);
+		perform_first_parallel_step(new_point, tmp_res, new_m, processing_intervals_map, 
+			processing_intervals_set, st);
 
 		while (!isEnd()) {
 			if (procrank == 0) {
@@ -264,15 +272,20 @@ result One_Dimensional_AGP::solve() {
 				compute_R(curr_x, new_m);
 
 				do {
-					new_point.first = get_new_point(pq->top()); pq->pop();
-				} while (processing_points.count(new_point.first) > 0);
+					auto interv = pq->top();
+					tmp_interval.first = interv.first_point.first[0];
+					tmp_interval.second = interv.second_point.first[0];
+					new_point.first = get_new_point(interv); pq->pop();
+				} while (processing_intervals_set.count(tmp_interval) > 0);
 
 				curr_x[curr_dim] = new_point.first;
-				processing_points.insert(new_point.first);
+				processing_intervals_map.insert({ st.MPI_SOURCE, tmp_interval });
+				processing_intervals_set.insert(tmp_interval);
 				MPI_Send(&new_point.first, 1, MPI_DOUBLE, st.MPI_SOURCE, st.MPI_SOURCE, MPI_COMM_WORLD);
 
 				MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-				processing_points.erase(data[0]);
+				processing_intervals_set.erase(processing_intervals_map[st.MPI_SOURCE]);
+				processing_intervals_map.erase(st.MPI_SOURCE);
 
 				std::vector<double>::const_iterator first = data.begin();
 				std::vector<double>::const_iterator last = data.begin() + range;
@@ -313,9 +326,10 @@ result One_Dimensional_AGP::solve() {
 
 		if (procrank == 0) {
 			MPI_Send(&new_point.first, 1, MPI_DOUBLE, st.MPI_SOURCE, 0, MPI_COMM_WORLD);
-			while (processing_points.size() > 0) {
+			while (processing_intervals_set.size() > 0) {
 				MPI_Recv(data.data(), data.size(), MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-				processing_points.erase(data[0]);
+				processing_intervals_set.erase(processing_intervals_map[st.MPI_SOURCE]);
+				processing_intervals_map.erase(st.MPI_SOURCE);
 				MPI_Recv(k.data(), k.size(), MPI_INT, st.MPI_SOURCE, st.MPI_SOURCE, MPI_COMM_WORLD, &st);
 
 				MPI_Send(&new_point.first, 1, MPI_DOUBLE, st.MPI_SOURCE, 0, MPI_COMM_WORLD);

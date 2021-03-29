@@ -34,7 +34,7 @@ ResultInfo::ResultInfo(int _successCount, int _failCount, double _averageTime, d
 
 int i;
 int procrank;
-int range = 2;
+int range = 3;
 TGrishaginProblemFamily grishFam;
 TGKLSProblemFamily gklsFam(range);
 
@@ -59,9 +59,9 @@ int main(int argc, char **argv)
 {
 	MPI_Init(&argc, &argv);
 
-	//std::vector<int> task_nums = { 0, 1, 2, 3, 4 };
+	//std::vector<int> task_nums = { 0 };
 	double eps = 0.01;
-	double eps_par = 0.001, r_par = 2.5;
+	double eps_par = 0.001, r_par = 5.5;
 	int Nmax = 100000000;
 
 	int taskNumber = gklsFam.GetFamilySize();
@@ -140,6 +140,7 @@ void execExperiment(int task_num, double eps_par, double r_par,
 
 	if (procrank == 0) {
 		actual_res = gklsFam[i]->GetOptimumPoint();
+		double actual_value = gklsFam[i]->GetOptimumValue();
 		res = check_result_coords(result.coords, actual_res, eps);
 		if (res) {
 			status = "OK";
@@ -151,6 +152,8 @@ void execExperiment(int task_num, double eps_par, double r_par,
 		resultsInfo[type]->totalTime += elapsed_ms.count();
 			
 		std::cout << type << j << " " << status << ", total time = " << elapsed_ms.count() << std::endl;
+		if (status == "Fail")
+			std::cout << "got vaule: " << result.z << " actual value: " << actual_value << std::endl;
 		std::cout << "number of processed points: ";
 		print(result.k);
 		std::cout << std::endl;
