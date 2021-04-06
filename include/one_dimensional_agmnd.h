@@ -26,14 +26,19 @@ protected:
 	void update_m(), compute_num_estimation(), compute_supposed_x(),
 		check_supposed_x(), recalc_characteristics(),
 		check_new_intervals(std::vector<double> new_point);
+	void do_parallel_job(double last_coord,
+		std::vector<double>& res, int rank);
 public:
 	One_Dimensional_AGMND(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+		bool useMPI, bool useThreads, int threadsNum,
 		double(*f)(std::vector<double> x),
 		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
-	virtual result solve();
+	virtual result solve_mpi();
+	virtual result solve_seq();
 	void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+		bool _useMPI, bool _useThreads, int _threadsNum,
 		double(*f)(std::vector<double> x),
 		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
 };

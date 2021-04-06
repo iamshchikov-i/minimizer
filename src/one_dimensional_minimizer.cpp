@@ -30,8 +30,8 @@ void One_Dimensional_Minimizer::compare_interval_len(std::vector<double> new_poi
 	double interval_length;
 	for (int i = 0;i < 2;++i, go_Next_Interval()) {
 		interval_length = (*right_point).first[curr_dim] - (*left_point).first[curr_dim];
-		/*if (curr_dim == 0)
-			std::cout<< interval_length << std::endl;*/
+		//if (curr_dim == 0)
+		//std::cout<< interval_length << std::endl;
 		if (interval_length < min_interval_length)
 			min_interval_length = interval_length;
 	}
@@ -39,15 +39,19 @@ void One_Dimensional_Minimizer::compare_interval_len(std::vector<double> new_poi
 
 One_Dimensional_Minimizer::One_Dimensional_Minimizer(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+	bool _useMPI, bool _useThreads, int _threadsNum,
 	double(*f)(std::vector<double> x),
 	double _eps, int _Nmax, double _r_par) : range(_range), curr_dim(_curr_dim), odm(_odm),
 	bounds(_bounds), curr_x(_curr_x), function(f),
+	useMPI(_useMPI), useThreads(_useThreads), threadsNum(_threadsNum),
 	eps(_eps), Nmax(_Nmax), r_p(_r_par) {
 	
 	points = new std::map<std::vector<double>, characteristics>;
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
-	MPI_Comm_size(MPI_COMM_WORLD, &procnum);
+	if (useMPI) {
+		MPI_Comm_rank(MPI_COMM_WORLD, &procrank);
+		MPI_Comm_size(MPI_COMM_WORLD, &procnum);
+	}
 }
 
 One_Dimensional_Minimizer::~One_Dimensional_Minimizer() {

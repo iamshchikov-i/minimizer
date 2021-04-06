@@ -10,6 +10,7 @@ enum class Upper_method { AGP, AGPD, AGMND };
 
 class Multi_Dimensional_Minimizer {
 private:
+	bool useMPI;
 	int range;
 	std::vector<One_Dimensional_Minimizer*> odm;
 	std::vector<double> lower_bound;
@@ -21,7 +22,8 @@ private:
  public:
 	Multi_Dimensional_Minimizer(int _range, std::vector<double>& _lower_bound,
 		 std::vector<double>& _upper_bound,
-		 double(*f)(std::vector<double> coords), Upper_method up, double _eps = 0.01, int _Nmax = 1000,
+		 double(*f)(std::vector<double> coords), bool useMPI, bool useThreads, int threadsNum, 
+		Upper_method up, double _eps = 0.01, int _Nmax = 1000,
 			  double _r_par = 2.0);
 	void set_experiment(int _range, std::vector<double>& _lower_bound,
 		std::vector<double>& _upper_bound,

@@ -2,9 +2,13 @@
 
 One_Dimensional_AGP::One_Dimensional_AGP(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+	bool _useMPI, bool _useThreads, int _threadsNum,
 	double(*f)(std::vector<double> x),
 	double _eps, int _Nmax, double _r_par) :
-	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, f, _eps, _Nmax, _r_par) {
+	One_Dimensional_Minimizer(_range, _curr_dim, _odm, _bounds, _curr_x, 
+		_useMPI, _useThreads, _threadsNum, 
+		f,
+		_eps, _Nmax, _r_par) {
 	pq = new std::priority_queue<interval, std::vector<interval>, CompareR_min>;
 }
 bool One_Dimensional_AGP::isEnd() {
@@ -91,8 +95,10 @@ void One_Dimensional_AGP::perform_first_iteration() {
 	result tmp_res;
 
 	if (curr_dim != range - 1) {
-		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-		odm[curr_dim + 1]->solve();
+		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+			useMPI, useThreads, threadsNum,
+			function, eps, Nmax, r_p);
+		odm[curr_dim + 1]->solve_mpi();
 		tmp_res = odm[curr_dim + 1]->get_result();
 		res.coords = tmp_res.coords;
 		res.z = tmp_res.z;
@@ -110,8 +116,10 @@ void One_Dimensional_AGP::perform_first_iteration() {
 
 		curr_x[curr_dim] = b;
 		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-			odm[curr_dim + 1]->solve();
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+				useMPI, useThreads, threadsNum, 
+				function, eps, Nmax, r_p);
+			odm[curr_dim + 1]->solve_mpi();
 			tmp_res = odm[curr_dim + 1]->get_result();
 
 			for (int i = curr_dim + 1; i < range; ++i)
@@ -139,6 +147,7 @@ void One_Dimensional_AGP::delete_containers() {
 
 void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 	std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+	bool _useMPI, bool _useThreads, int _threadsNum,
 	double(*f)(std::vector<double> x),
 	double _eps, int _Nmax, double _r_par) {
 
@@ -152,6 +161,10 @@ void One_Dimensional_AGP::set_experiment(int _range, int _curr_dim, std::vector<
 	eps = _eps;
 	Nmax = _Nmax;
 	r_p = _r_par;
+
+	useMPI = _useMPI;
+	useThreads = _useThreads;
+	threadsNum = _threadsNum;
     
     if (points == nullptr)
         points = new std::map<std::vector<double>, characteristics>;
@@ -206,8 +219,10 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 
 		curr_x[curr_dim] = new_point.first;
 		
-		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-		odm[curr_dim + 1]->solve();
+		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, 
+			useMPI, useThreads, threadsNum, 
+			function, eps, Nmax, r_p);
+		odm[curr_dim + 1]->solve_mpi();
 		tmp_res = odm[curr_dim + 1]->get_result();
 
 		for (int i = curr_dim + 1; i < range; ++i)
@@ -221,7 +236,15 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 	}
 }
 
-result One_Dimensional_AGP::solve() {
+void One_Dimensional_AGP::do_parallel_job(double last_coord,
+	std::vector<double>& res, int rank) {
+	std::vector<double> tmp_coords(curr_x);
+	tmp_coords[curr_dim] = last_coord;
+	res[rank] = (*function)(tmp_coords);
+}
+
+result One_Dimensional_AGP::solve_mpi() {
+	int th_num = 2;
 	std::vector<double> data(range + 1);
 	std::vector<int> k(range);
 	std::map<int, std::pair<double, double>> processing_intervals_map;
@@ -245,8 +268,10 @@ result One_Dimensional_AGP::solve() {
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-				odm[curr_dim + 1]->solve();
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+					useMPI, useThreads, threadsNum, 
+					function, eps, Nmax, r_p);
+				odm[curr_dim + 1]->solve_mpi();
 				tmp_res = odm[curr_dim + 1]->get_result();
 
 				for (int i = curr_dim + 1; i < range; ++i)
@@ -309,8 +334,10 @@ result One_Dimensional_AGP::solve() {
 					
 				curr_x[curr_dim] = new_point.first;
 
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-				odm[curr_dim + 1]->solve();
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, 
+					useMPI, useThreads, threadsNum, 
+					function, eps, Nmax, r_p);
+				odm[curr_dim + 1]->solve_mpi();
 				tmp_res = odm[curr_dim + 1]->get_result();
 
 				for (int i = curr_dim + 1; i < range; ++i)
@@ -335,6 +362,45 @@ result One_Dimensional_AGP::solve() {
 				MPI_Send(&new_point.first, 1, MPI_DOUBLE, st.MPI_SOURCE, 0, MPI_COMM_WORLD);
 			}
 		}
+	} else if (curr_dim == range - 1 
+		&& procrank == 0 
+		&& points->size() >= th_num - 1 
+		&& useThreads) {
+		while (!isEnd()) {
+			std::thread *pth = new std::thread[th_num];
+			std::vector<double> last_coord(th_num);
+			std::vector<double> result(th_num);
+
+			new_m = get_m();
+			compute_R(curr_x, new_m);
+			for (int i = 0; i < th_num; ++i)
+				last_coord[i] = get_new_point(pq->top()); pq->pop();
+
+			for (int i = 1; i < th_num; ++i)
+				pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
+					last_coord[i], std::ref(result), i);
+			do_parallel_job(last_coord[0], result, 0);
+
+			curr_x[curr_dim] = last_coord[0];
+			tmp_res.coords = curr_x;
+			tmp_res.z = result[0];
+
+			insert_to_map(tmp_res.coords, tmp_res.z, 0);
+			compare_interval_len(curr_x);
+			compare_M(curr_x);
+
+			for (int i = 1; i < th_num; ++i) {
+				pth[i].join();
+
+				curr_x[curr_dim] = last_coord[i];
+				tmp_res.coords = curr_x;
+				tmp_res.z = result[i];
+
+				insert_to_map(tmp_res.coords, tmp_res.z, 0);
+				compare_interval_len(curr_x);
+				compare_M(curr_x);
+			}
+		}
 	} else {
 		while (!isEnd()) {
 			new_m = get_m();
@@ -343,8 +409,10 @@ result One_Dimensional_AGP::solve() {
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, function, eps, Nmax, r_p);
-				odm[curr_dim + 1]->solve();
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x, 
+					useMPI, useThreads, threadsNum, 
+					function, eps, Nmax, r_p);
+				odm[curr_dim + 1]->solve_mpi();
 				tmp_res = odm[curr_dim + 1]->get_result();
 
 				for (int i = curr_dim + 1; i < range; ++i)
@@ -365,5 +433,47 @@ result One_Dimensional_AGP::solve() {
 	res.k[curr_dim] += points->size();
 	delete_containers();
 		
+	return res;
+}
+
+result One_Dimensional_AGP::solve_seq() {
+	result tmp_res;
+	if (curr_dim == 0) {
+		for (int i = 0; i < range; ++i)
+			curr_x[i] = bounds[i].first;
+	}
+	std::pair<double, double> new_point;
+	double new_m;
+
+	perform_first_iteration();
+	while (!isEnd()) {
+		new_m = get_m();
+		compute_R(curr_x, new_m);
+		new_point.first = get_new_point(pq->top()); pq->pop();
+
+		curr_x[curr_dim] = new_point.first;
+		if (curr_dim != range - 1) {
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+				useMPI, useThreads, threadsNum,
+				function, eps, Nmax, r_p);
+			odm[curr_dim + 1]->solve_seq();
+			tmp_res = odm[curr_dim + 1]->get_result();
+
+			for (int i = curr_dim + 1; i < range; ++i)
+				res.k[i] += tmp_res.k[i];
+		}
+		else {
+			tmp_res.coords = curr_x;
+			tmp_res.z = (*function)(curr_x);
+		}
+
+		curr_x = tmp_res.coords;
+		insert_to_map(tmp_res.coords, tmp_res.z, 0);
+		compare_interval_len(curr_x);
+		compare_M(curr_x);
+	}
+	res.k[curr_dim] += points->size();
+	delete_containers();
+
 	return res;
 }

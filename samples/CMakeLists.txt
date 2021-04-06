@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 2.8)
 
 set(PROJECT_NAME_STR sample)
 set(CMAKE_CXX_STANDARD 11)

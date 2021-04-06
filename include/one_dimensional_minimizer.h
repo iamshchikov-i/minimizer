@@ -8,6 +8,7 @@
 #include <iostream>
 #include <utility>
 #include <set>
+#include <thread>
 
 #include "mpi.h"
 
@@ -50,7 +51,8 @@ struct CompareR_min {
 
 class One_Dimensional_Minimizer {
 protected:
-	int procrank, procnum;
+	bool useMPI, useThreads;
+	int procrank, procnum, threadsNum;
 	int curr_dim, range, Nmax;
 	double m, M_Max, eps, r_p, min_interval_length;
 	std::vector<double> curr_x;
@@ -71,19 +73,24 @@ protected:
 			double _num_estimation = 0.0) = 0,
 		compare_M(std::vector<double> new_point) = 0,
 		perform_first_iteration() = 0, delete_containers() = 0;
+	virtual void do_parallel_job(double last_coord,
+		std::vector<double>& res, int rank) = 0;
 public:
 	One_Dimensional_Minimizer(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
+		bool useMPI, bool useThreads, int threadsNum,
 		double(*f)(std::vector<double> x),
 		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0);
 	virtual void set_experiment(int _range, int _curr_dim, std::vector<One_Dimensional_Minimizer*> _odm,
 		std::vector<std::pair<double, double>> _bounds, std::vector<double> _curr_x,
-		double(*f)(std::vector<double> x),
+		bool useMPI, bool useThreads, int threadsNum,
+		double(*f)(std::vector<double> x), 
 		double _eps = 0.001, int _Nmax = 1000, double _r_par = 2.0) = 0;
 	virtual ~One_Dimensional_Minimizer();
 
 	result get_result();
-	virtual result solve() = 0;
+	virtual result solve_mpi() = 0;
+	virtual result solve_seq() = 0;
 	double get_r();
 };
 
