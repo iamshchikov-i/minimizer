@@ -391,8 +391,8 @@ result One_Dimensional_AGMND::solve_mpi() {
 
 	perform_first_iteration(); // perform at the boundary points a and b
 	while (!isEnd()) {
-		if (!useThreads || points->size() < threadsNum + 1) {
-			//std::cout << "bef" << std::endl;
+		if (!useThreads ||
+			useThreads && (points->size() < threadsNum + 1)) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			search_interval = pq->top(); pq->pop();
@@ -405,7 +405,6 @@ result One_Dimensional_AGMND::solve_mpi() {
 			compare_interval_len(curr_x);
 			compare_M(curr_x);
 		} else {
-			//std::cout << "aft" << std::endl;
 			std::thread *pth = new std::thread[threadsNum];
 			std::vector<double> last_coord(threadsNum);
 			std::vector<double> result(threadsNum);
@@ -422,7 +421,6 @@ result One_Dimensional_AGMND::solve_mpi() {
 			do_parallel_job(last_coord[0], result, 0);
 
 			curr_x[curr_dim] = last_coord[0];
-			//std::cout << "th 0 solved " << last_coord[0] << std::endl;
 			insert_to_map(curr_x, result[0], 0, 0);
 			compute_num_estimation();
 			compare_interval_len(curr_x);
@@ -432,7 +430,6 @@ result One_Dimensional_AGMND::solve_mpi() {
 				pth[i].join();
 
 				curr_x[curr_dim] = last_coord[i];
-				//std::cout << "th 1 solved " << last_coord[i] << std::endl;
 				insert_to_map(curr_x, result[i], 0, 0);
 				compute_num_estimation();
 				compare_interval_len(curr_x);
@@ -455,17 +452,51 @@ result One_Dimensional_AGMND::solve_seq() {
 	perform_first_iteration(); // perform at the boundary points a and b 
 
 	while (!isEnd()) {
-		new_m = get_m();
-		compute_R(curr_x, new_m);
-		search_interval = pq->top(); pq->pop();
-		new_point.first = get_new_point(search_interval);
+		if (!useThreads ||
+			useThreads && (points->size() < threadsNum + 1)) {
+			new_m = get_m();
+			compute_R(curr_x, new_m);
+			search_interval = pq->top(); pq->pop();
+			new_point.first = get_new_point(search_interval);
 
-		curr_x[curr_dim] = new_point.first;
-		new_point.second = (*function)(curr_x);
-		insert_to_map(curr_x, new_point.second, 0, 0);
-		compute_num_estimation();
-		compare_interval_len(curr_x);
-		compare_M(curr_x);
+			curr_x[curr_dim] = new_point.first;
+			new_point.second = (*function)(curr_x);
+			insert_to_map(curr_x, new_point.second, 0, 0);
+			compute_num_estimation();
+			compare_interval_len(curr_x);
+			compare_M(curr_x);
+		} else {
+			std::thread *pth = new std::thread[threadsNum];
+			std::vector<double> last_coord(threadsNum);
+			std::vector<double> result(threadsNum);
+
+			new_m = get_m();
+			compute_R(curr_x, new_m);
+			for (int i = 0; i < threadsNum; ++i) {
+				last_coord[i] = get_new_point(pq->top()); pq->pop();
+			}
+
+			for (int i = 1; i < threadsNum; ++i)
+				pth[i] = std::thread(&One_Dimensional_AGMND::do_parallel_job, this,
+					last_coord[i], std::ref(result), i);
+			do_parallel_job(last_coord[0], result, 0);
+
+			curr_x[curr_dim] = last_coord[0];
+			insert_to_map(curr_x, result[0], 0, 0);
+			compute_num_estimation();
+			compare_interval_len(curr_x);
+			compare_M(curr_x);
+
+			for (int i = 1; i < threadsNum; ++i) {
+				pth[i].join();
+
+				curr_x[curr_dim] = last_coord[i];
+				insert_to_map(curr_x, result[i], 0, 0);
+				compute_num_estimation();
+				compare_interval_len(curr_x);
+				compare_M(curr_x);
+			}
+		}
 	}
 	res.k[curr_dim] = points->size();
 	delete_containers();

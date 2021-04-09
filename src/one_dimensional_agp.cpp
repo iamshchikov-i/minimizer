@@ -250,7 +250,6 @@ void One_Dimensional_AGP::do_parallel_job(double last_coord,
 }
 
 result One_Dimensional_AGP::solve_mpi() {
-	int th_num = 2;
 	std::vector<double> data(range + 1);
 	std::vector<int> k(range);
 	std::map<int, std::pair<double, double>> processing_intervals_map;
@@ -370,19 +369,19 @@ result One_Dimensional_AGP::solve_mpi() {
 		}
 	} else if (curr_dim == range - 1 
 		&& procrank == 0 
-		&& points->size() >= th_num - 1 
+		&& points->size() >= threadsNum - 1
 		&& useThreads) {
 		while (!isEnd()) {
-			std::thread *pth = new std::thread[th_num];
-			std::vector<double> last_coord(th_num);
-			std::vector<double> result(th_num);
+			std::thread *pth = new std::thread[threadsNum];
+			std::vector<double> last_coord(threadsNum);
+			std::vector<double> result(threadsNum);
 
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			for (int i = 0; i < th_num; ++i)
+			for (int i = 0; i < threadsNum; ++i)
 				last_coord[i] = get_new_point(pq->top()); pq->pop();
 
-			for (int i = 1; i < th_num; ++i)
+			for (int i = 1; i < threadsNum; ++i)
 				pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
 					last_coord[i], std::ref(result), i);
 			do_parallel_job(last_coord[0], result, 0);
@@ -395,7 +394,7 @@ result One_Dimensional_AGP::solve_mpi() {
 			compare_interval_len(curr_x);
 			compare_M(curr_x);
 
-			for (int i = 1; i < th_num; ++i) {
+			for (int i = 1; i < threadsNum; ++i) {
 				pth[i].join();
 
 				curr_x[curr_dim] = last_coord[i];
@@ -452,31 +451,70 @@ result One_Dimensional_AGP::solve_seq() {
 	double new_m;
 
 	perform_first_iteration();
-	while (!isEnd()) {
-		new_m = get_m();
-		compute_R(curr_x, new_m);
-		new_point.first = get_new_point(pq->top()); pq->pop();
+	if (curr_dim == range - 1
+		&& points->size() >= threadsNum - 1
+		&& useThreads) {
+		while (!isEnd()) {
+			std::thread *pth = new std::thread[threadsNum];
+			std::vector<double> last_coord(threadsNum);
+			std::vector<double> result(threadsNum);
 
-		curr_x[curr_dim] = new_point.first;
-		if (curr_dim != range - 1) {
-			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
-				useMPI, useThreads, threadsNum,
-				function, eps, Nmax, r_p);
-			odm[curr_dim + 1]->solve_seq();
-			tmp_res = odm[curr_dim + 1]->get_result();
+			new_m = get_m();
+			compute_R(curr_x, new_m);
+			for (int i = 0; i < threadsNum; ++i)
+				last_coord[i] = get_new_point(pq->top()); pq->pop();
 
-			for (int i = curr_dim + 1; i < range; ++i)
-				res.k[i] += tmp_res.k[i];
-		}
-		else {
+			for (int i = 1; i < threadsNum; ++i)
+				pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
+					last_coord[i], std::ref(result), i);
+			do_parallel_job(last_coord[0], result, 0);
+
+			curr_x[curr_dim] = last_coord[0];
 			tmp_res.coords = curr_x;
-			tmp_res.z = (*function)(curr_x);
-		}
+			tmp_res.z = result[0];
 
-		curr_x = tmp_res.coords;
-		insert_to_map(tmp_res.coords, tmp_res.z, 0);
-		compare_interval_len(curr_x);
-		compare_M(curr_x);
+			insert_to_map(tmp_res.coords, tmp_res.z, 0);
+			compare_interval_len(curr_x);
+			compare_M(curr_x);
+
+			for (int i = 1; i < threadsNum; ++i) {
+				pth[i].join();
+
+				curr_x[curr_dim] = last_coord[i];
+				tmp_res.coords = curr_x;
+				tmp_res.z = result[i];
+
+				insert_to_map(tmp_res.coords, tmp_res.z, 0);
+				compare_interval_len(curr_x);
+				compare_M(curr_x);
+			}
+		}
+	} else {
+		while (!isEnd()) {
+			new_m = get_m();
+			compute_R(curr_x, new_m);
+			new_point.first = get_new_point(pq->top()); pq->pop();
+			curr_x[curr_dim] = new_point.first;
+			if (curr_dim != range - 1) {
+				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+					useMPI, useThreads, threadsNum,
+					function, eps, Nmax, r_p);
+				odm[curr_dim + 1]->solve_seq();
+				tmp_res = odm[curr_dim + 1]->get_result();
+
+				for (int i = curr_dim + 1; i < range; ++i)
+					res.k[i] += tmp_res.k[i];
+			}
+			else {
+				tmp_res.coords = curr_x;
+				tmp_res.z = (*function)(curr_x);
+			}
+
+			curr_x = tmp_res.coords;
+			insert_to_map(tmp_res.coords, tmp_res.z, 0);
+			compare_interval_len(curr_x);
+			compare_M(curr_x);
+		}
 	}
 	res.k[curr_dim] += points->size();
 	delete_containers();
