@@ -10,6 +10,6 @@ script:
 - cmake ../minimizer
 - make -j
 - cd ./bin/
-- ./sample dims=2 epsPar=0.001 rPar=4.0 Nmax=100000000 epsErr=0.01
+- ./test_minimizer --gtest_list_tests
 notifications:
   email: false
