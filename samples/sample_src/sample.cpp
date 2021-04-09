@@ -190,7 +190,7 @@ bool check_result_coords(std::vector<double>& expected,
 
 	assert(expected.size() == actual.size());
 	for (int i = 0; i < actual.size(); ++i) {
-		if (abs(expected[i] - actual[i]) > eps) {
+		if (std::abs(expected[i] - actual[i]) > eps) {
 			std::cout << "coords " << i << " are too much different " << expected[i] << " " << actual[i] << std::endl;
 			status = false;
 		}

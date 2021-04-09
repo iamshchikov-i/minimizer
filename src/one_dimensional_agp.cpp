@@ -98,7 +98,10 @@ void One_Dimensional_AGP::perform_first_iteration() {
 		odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
 			useMPI, useThreads, threadsNum,
 			function, eps, Nmax, r_p);
-		odm[curr_dim + 1]->solve_mpi();
+		if(useMPI)
+			odm[curr_dim + 1]->solve_mpi();
+		else
+			odm[curr_dim + 1]->solve_seq();
 		tmp_res = odm[curr_dim + 1]->get_result();
 		res.coords = tmp_res.coords;
 		res.z = tmp_res.z;
@@ -119,7 +122,10 @@ void One_Dimensional_AGP::perform_first_iteration() {
 			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
 				useMPI, useThreads, threadsNum, 
 				function, eps, Nmax, r_p);
-			odm[curr_dim + 1]->solve_mpi();
+			if(useMPI)
+				odm[curr_dim + 1]->solve_mpi();
+			else
+				odm[curr_dim + 1]->solve_seq();
 			tmp_res = odm[curr_dim + 1]->get_result();
 
 			for (int i = curr_dim + 1; i < range; ++i)

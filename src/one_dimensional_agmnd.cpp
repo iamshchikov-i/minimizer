@@ -22,10 +22,10 @@ double One_Dimensional_AGMND::get_M() {
 	dx = (*right_point).first[curr_dim] - (*left_point).first[curr_dim];
 	dy = (*right_point).second.z - (*left_point).second.z;
 
-	t1 = abs((*right_point).second.num_estimation -
+	t1 = std::abs((*right_point).second.num_estimation -
 		(*left_point).second.num_estimation) / dx;
-	t2 = 2 * abs((-dy + (*left_point).second.num_estimation * dx)) / pow(dx, 2);
-	t3 = 2 * abs((dy - (*right_point).second.num_estimation * dx)) / pow(dx, 2);
+	t2 = 2 * std::abs((-dy + (*left_point).second.num_estimation * dx)) / pow(dx, 2);
+	t3 = 2 * std::abs((dy - (*right_point).second.num_estimation * dx)) / pow(dx, 2);
 
 	return std::max({ t1, t2, t3 });
 }
@@ -249,8 +249,8 @@ void One_Dimensional_AGMND::compute_supposed_x() {
 				0.5 * m * pow((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2, 2) +
 				get_B((*right_point).second.supposed_x2);
 
-			if (abs(phi3 - phi2) > abs(phi3) * 0.01) {
-				m += 2.0 * fabs(phi3 - phi2) / pow(get_d(), 2);
+			if (std::abs(phi3 - phi2) > std::abs(phi3) * 0.01) {
+				m += 2.0 * std::abs(phi3 - phi2) / pow(get_d(), 2);
 				recalc = true;
 				continue;
 			}
@@ -274,7 +274,7 @@ void One_Dimensional_AGMND::check_supposed_x() {
 		if (D > 0) {
 			tmp_x1 = (-b - sqrt(D)) / (2 * a);
 			tmp_x2 = (-b + sqrt(D)) / (2 * a);
-			M_Max = std::max(M_Max, static_cast<double>(std::max(abs(tmp_x1), abs(tmp_x2))));
+			M_Max = std::max(M_Max, static_cast<double>(std::max(std::abs(tmp_x1), std::abs(tmp_x2))));
 		}
 	}
 	mult = M_Max / old_M_Max;
