@@ -3,12 +3,12 @@
 point::point(double _x, double _y): x(_x), y(_y) {}
 
 double load() {
-	int n = 500;
+	int n = 1000;
 	double h = 0;
 	for (int i = 1; i < n; i++) {
 
-		h += pow(sin(i), 2) + pow(cos(i), 2);
-		h -= log2((i / i) * 2);
+		h += std::pow(sin(i), 2) + std::pow(cos(i), 2);
+		h -= std::log2((i / i) * 2);
 	}
 	return h;
 }

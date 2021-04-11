@@ -15,6 +15,7 @@
 #include "multi_dimensional_minimizer.h"
 
 #include "command_line_parser.h"
+#include "functions.h"
 
 #include <chrono>
 #include <assert.h>
@@ -38,7 +39,8 @@ int i;
 TGKLSProblemFamily* gklsFamGlob;
 
 double f_gkls(std::vector<double> coords) {
-	return gklsFamGlob->operator[](i)->ComputeFunction(coords);
+	double delta = load();
+	return delta + gklsFamGlob->operator[](i)->ComputeFunction(coords) - delta;
 }
 
 void get_odm_values();
@@ -81,7 +83,7 @@ int main(int argc, char **argv)
 	resultsInfo.insert({ "AGP", &resInfoAgp });
 	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
 
-	for (int j = 0; j < taskNumber; ++j) {
+	for (int j = 0; j < 5; ++j) {
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
 			epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
