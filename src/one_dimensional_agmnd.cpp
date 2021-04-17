@@ -395,7 +395,8 @@ result One_Dimensional_AGMND::solve_mpi() {
 			useThreads && (points->size() < threadsNum + 1)) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			search_interval = pq->top(); pq->pop();
+			search_interval = pq->top(); 
+			pq->pop();
 			new_point.first = get_new_point(search_interval);
 
 			curr_x[curr_dim] = new_point.first;
@@ -412,7 +413,8 @@ result One_Dimensional_AGMND::solve_mpi() {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			for (int i = 0; i < threadsNum; ++i) {
-				last_coord[i] = get_new_point(pq->top()); pq->pop();
+				last_coord[i] = get_new_point(pq->top()); 
+				pq->pop();
 			}
 
 			for (int i = 1; i < threadsNum; ++i)
@@ -449,6 +451,11 @@ result One_Dimensional_AGMND::solve_seq() {
 	double new_m;
 	interval search_interval;
 
+	std::thread *pth;
+	if(curr_dim == range - 1
+	   && useThreads)
+		pth = new std::thread[threadsNum];
+
 	perform_first_iteration(); // perform at the boundary points a and b 
 
 	while (!isEnd()) {
@@ -456,7 +463,8 @@ result One_Dimensional_AGMND::solve_seq() {
 			useThreads && (points->size() < threadsNum + 1)) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			search_interval = pq->top(); pq->pop();
+			search_interval = pq->top(); 
+			pq->pop();
 			new_point.first = get_new_point(search_interval);
 
 			curr_x[curr_dim] = new_point.first;
@@ -466,14 +474,14 @@ result One_Dimensional_AGMND::solve_seq() {
 			compare_interval_len(curr_x);
 			compare_M(curr_x);
 		} else {
-			std::thread *pth = new std::thread[threadsNum];
 			std::vector<double> last_coord(threadsNum);
 			std::vector<double> result(threadsNum);
 
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			for (int i = 0; i < threadsNum; ++i) {
-				last_coord[i] = get_new_point(pq->top()); pq->pop();
+				last_coord[i] = get_new_point(pq->top()); 
+				pq->pop();
 			}
 
 			for (int i = 1; i < threadsNum; ++i)

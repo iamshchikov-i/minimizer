@@ -244,6 +244,7 @@ void One_Dimensional_AGP::perform_first_parallel_step(std::pair<double,
 
 void One_Dimensional_AGP::do_parallel_job(double last_coord,
 	std::vector<double>& res, int rank) {
+
 	std::vector<double> tmp_coords(curr_x);
 	tmp_coords[curr_dim] = last_coord;
 	res[rank] = (*function)(tmp_coords);
@@ -269,7 +270,8 @@ result One_Dimensional_AGP::solve_mpi() {
 		while (!isEnd() && points->size() < procnum) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			new_point.first = get_new_point(pq->top()); pq->pop();
+			new_point.first = get_new_point(pq->top()); 
+			pq->pop();
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
@@ -305,7 +307,8 @@ result One_Dimensional_AGP::solve_mpi() {
 					auto interv = pq->top();
 					tmp_interval.first = interv.first_point.first[0];
 					tmp_interval.second = interv.second_point.first[0];
-					new_point.first = get_new_point(interv); pq->pop();
+					new_point.first = get_new_point(interv); 
+					pq->pop();
 				} while (processing_intervals_set.count(tmp_interval) > 0);
 
 				curr_x[curr_dim] = new_point.first;
@@ -378,8 +381,11 @@ result One_Dimensional_AGP::solve_mpi() {
 
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			for (int i = 0; i < threadsNum; ++i)
-				last_coord[i] = get_new_point(pq->top()); pq->pop();
+			for (int i = 0; i < threadsNum; ++i) {
+				last_coord[i] = get_new_point(pq->top());
+				pq->pop();
+			}
+				
 
 			for (int i = 1; i < threadsNum; ++i)
 				pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
@@ -410,7 +416,8 @@ result One_Dimensional_AGP::solve_mpi() {
 		while (!isEnd()) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			new_point.first = get_new_point(pq->top()); pq->pop();
+			new_point.first = get_new_point(pq->top()); 
+			pq->pop();
 
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
@@ -450,19 +457,26 @@ result One_Dimensional_AGP::solve_seq() {
 	std::pair<double, double> new_point;
 	double new_m;
 
+	std::thread *pth;
+	if(curr_dim == range - 1
+	   && useThreads)
+		pth = new std::thread[threadsNum];
+
 	perform_first_iteration();
 	while (!isEnd()) {
 		if (curr_dim == range - 1
 			&& points->size() >= threadsNum + 1
 			&& useThreads) {
-				std::thread *pth = new std::thread[threadsNum];
 				std::vector<double> last_coord(threadsNum);
 				std::vector<double> result(threadsNum);
 
 				new_m = get_m();
 				compute_R(curr_x, new_m);
-				for (int i = 0; i < threadsNum; ++i)
-					last_coord[i] = get_new_point(pq->top()); pq->pop();
+				for (int i = 0; i < threadsNum; ++i) {
+					last_coord[i] = get_new_point(pq->top());
+					pq->pop();
+				}
+					
 
 				for (int i = 1; i < threadsNum; ++i)
 					pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
@@ -485,7 +499,8 @@ result One_Dimensional_AGP::solve_seq() {
 		} else {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
-			new_point.first = get_new_point(pq->top()); pq->pop();
+			new_point.first = get_new_point(pq->top()); 
+			pq->pop();
 			curr_x[curr_dim] = new_point.first;
 			if (curr_dim != range - 1) {
 				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
