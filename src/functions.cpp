@@ -3,7 +3,8 @@
 point::point(double _x, double _y): x(_x), y(_y) {}
 
 double load() {
-	int n = 1000;
+	const char* env_p = std::getenv("NCOUNT");
+	int n = std::atoi(env_p);
 	double h = 0;
 	for (int i = 1; i < n; i++) {
 

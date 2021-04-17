@@ -2,6 +2,7 @@
 #define __TWO_DIMENSIONAL_FUNCTIONS_H__
 
 #include <cmath>
+#include <cstdlib>
 
 struct point {
 	double x;
