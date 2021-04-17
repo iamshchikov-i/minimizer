@@ -26,7 +26,7 @@ double One_Dimensional_AGP::get_m() {
     } else if (M_Max == 0) {
         return 1;
     } else {
-        throw - 1;
+        throw std::runtime_error ("One_Dimensional_AGP::get_m");
     }
 }
 
