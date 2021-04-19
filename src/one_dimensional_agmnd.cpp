@@ -24,8 +24,8 @@ double One_Dimensional_AGMND::get_M() {
 
 	t1 = std::abs((*right_point).second.num_estimation -
 		(*left_point).second.num_estimation) / dx;
-	t2 = 2 * std::abs((-dy + (*left_point).second.num_estimation * dx)) / pow(dx, 2);
-	t3 = 2 * std::abs((dy - (*right_point).second.num_estimation * dx)) / pow(dx, 2);
+	t2 = 2 * std::abs((-dy + (*left_point).second.num_estimation * dx)) / std::pow(dx, 2);
+	t3 = 2 * std::abs((dy - (*right_point).second.num_estimation * dx)) / std::pow(dx, 2);
 
 	return std::max({ t1, t2, t3 });
 }
@@ -35,6 +35,7 @@ double One_Dimensional_AGMND::get_m() {
 }
 
 double One_Dimensional_AGMND::get_R() {
+	//std::cout << (*right_point).second.supposed_x1 << " "<< (*right_point).second.supposed_x2 << " " << (*right_point).second.supposed_x3 << std::endl;
 	if ((*right_point).second.supposed_x1 >= (*right_point).second.supposed_x2 &&
 		(*right_point).second.supposed_x1 <= (*right_point).second.supposed_x3)
 		return auxiliary_function((*right_point).second.supposed_x1);
@@ -60,8 +61,7 @@ double One_Dimensional_AGMND::get_new_point(interval i) {
 	else if (i.second_point.second.auxiliary_function_x2 >
 		i.second_point.second.auxiliary_function_x3)
 		return i.second_point.second.supposed_x3;
-	else
-		throw - 1;
+	else throw std::runtime_error ("One_Dimensional_AGMND::get_new_point");
 }
 
 void One_Dimensional_AGMND::compute_R(std::vector<double> new_point, double new_m) {
@@ -126,7 +126,7 @@ void One_Dimensional_AGMND::compute_num_estimation() {
 	H = h1 + h2;
 
 	(*left_point).second.num_estimation = (-(2 + d) * (*left_point).second.z +
-		(pow((1 + d), 2) * (*right_point).second.z / d) - (*point_after_right).second.z / d) / H;
+		(std::pow((1 + d), 2) * (*right_point).second.z / d) - (*point_after_right).second.z / d) / H;
 
 	for (; point_after_right != --points->end(); go_Next_Interval(), point_after_right++) {
 		h1 = (*right_point).first[curr_dim] - (*left_point).first[curr_dim];
@@ -135,7 +135,7 @@ void One_Dimensional_AGMND::compute_num_estimation() {
 		H = h1 + h2;
 
 		(*right_point).second.num_estimation = (-d * (*left_point).second.z +
-			((pow(d, 2) - 1) * (*right_point).second.z / d) + (*point_after_right).second.z / d) / H;
+			((std::pow(d, 2) - 1) * (*right_point).second.z / d) + (*point_after_right).second.z / d) / H;
 	}
 
 	h1 = (*right_point).first[curr_dim] - (*left_point).first[curr_dim];
@@ -144,7 +144,7 @@ void One_Dimensional_AGMND::compute_num_estimation() {
 	H = h1 + h2;
 
 	(*right_point).second.num_estimation = (-d * (*left_point).second.z +
-		((pow(d, 2) - 1) * (*right_point).second.z / d) + (*point_after_right).second.z / d) / H;
+		((std::pow(d, 2) - 1) * (*right_point).second.z / d) + (*point_after_right).second.z / d) / H;
 
 	h1 = (*right_point).first[curr_dim] - (*left_point).first[curr_dim];
 	h2 = (*point_after_right).first[curr_dim] - (*right_point).first[curr_dim];
@@ -152,7 +152,7 @@ void One_Dimensional_AGMND::compute_num_estimation() {
 	H = h1 + h2;
 
 	(*point_after_right).second.num_estimation = (d * (*left_point).second.z -
-		(pow((1 + d), 2) * (*right_point).second.z / d) + (2 * d + 1) * (*point_after_right).second.z / d) / H;
+		(std::pow((1 + d), 2) * (*right_point).second.z / d) + (2 * d + 1) * (*point_after_right).second.z / d) / H;
 }
 
 double One_Dimensional_AGMND::get_A() {
@@ -163,7 +163,7 @@ double One_Dimensional_AGMND::get_A() {
 double One_Dimensional_AGMND::get_B(double x) {
 	return (*left_point).second.z +
 		(*left_point).second.num_estimation * (x - (*left_point).first[curr_dim]) -
-		0.5 * m * pow(x - (*left_point).first[curr_dim], 2);
+		0.5 * m * std::pow(x - (*left_point).first[curr_dim], 2);
 }
 
 double One_Dimensional_AGMND::get_d() {
@@ -177,7 +177,7 @@ double One_Dimensional_AGMND::auxiliary_function(double x) {
 		x <= (*right_point).second.supposed_x3) {
 
 		return get_A() * (x - (*right_point).second.supposed_x2) +
-			0.5 * m * pow(x - (*right_point).second.supposed_x2, 2) +
+			0.5 * m * std::pow(x - (*right_point).second.supposed_x2, 2) +
 			get_B((*right_point).second.supposed_x2);
 	}
 
@@ -185,7 +185,7 @@ double One_Dimensional_AGMND::auxiliary_function(double x) {
 		x < (*right_point).second.supposed_x2) {
 
 		return (*left_point).second.z + (*left_point).second.num_estimation *
-			(x - (*left_point).first[curr_dim]) - 0.5 * m * pow(x - (*left_point).first[curr_dim], 2);
+			(x - (*left_point).first[curr_dim]) - 0.5 * m * std::pow(x - (*left_point).first[curr_dim], 2);
 	}
 
 	else if (x > (*right_point).second.supposed_x2 &&
@@ -194,9 +194,12 @@ double One_Dimensional_AGMND::auxiliary_function(double x) {
 
 		return (*right_point).second.z - (*right_point).second.num_estimation *
 			((*right_point).first[curr_dim] - x) -
-			0.5 * m * pow(x - (*right_point).first[curr_dim], 2);
+			0.5 * m * std::pow(x - (*right_point).first[curr_dim], 2);
 	}
-	else throw - 1;
+	
+	else {
+		throw std::runtime_error ("One_Dimensional_AGMND::auxiliary_function");
+	}
 }
 
 void One_Dimensional_AGMND::compute_supposed_x() {
@@ -208,7 +211,7 @@ void One_Dimensional_AGMND::compute_supposed_x() {
 		tmp1 = ((*left_point).second.z - (*left_point).second.num_estimation *
 			(*left_point).first[curr_dim]) - ((*right_point).second.z -
 			(*right_point).second.num_estimation * (*right_point).first[curr_dim]) +
-			m * (pow((*right_point).first[curr_dim], 2) - pow((*left_point).first[curr_dim], 2)) / 2;
+			m * (std::pow((*right_point).first[curr_dim], 2) - std::pow((*left_point).first[curr_dim], 2)) / 2;
 
 		// B
 		tmp2 = m * ((*right_point).first[curr_dim] - (*left_point).first[curr_dim]) +
@@ -224,7 +227,7 @@ void One_Dimensional_AGMND::compute_supposed_x() {
 			continue;
 		}
 
-		tmp3 = m * pow(get_d(), 2);
+		tmp3 = m * std::pow(get_d(), 2);
 		(*right_point).second.supposed_x2 = (tmp1 - tmp3) / tmp2;
 		(*right_point).second.supposed_x3 = (tmp1 + tmp3) / tmp2;
 
@@ -243,14 +246,14 @@ void One_Dimensional_AGMND::compute_supposed_x() {
 
 			phi2 = (*right_point).second.z - (*right_point).second.num_estimation *
 				((*right_point).first[curr_dim] - (*right_point).second.supposed_x3) -
-				0.5 * m * pow((*right_point).first[curr_dim] - (*right_point).second.supposed_x3, 2);
+				0.5 * m * std::pow((*right_point).first[curr_dim] - (*right_point).second.supposed_x3, 2);
 
 			phi3 = get_A() * ((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2) +
-				0.5 * m * pow((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2, 2) +
+				0.5 * m * std::pow((*right_point).second.supposed_x3 - (*right_point).second.supposed_x2, 2) +
 				get_B((*right_point).second.supposed_x2);
 
 			if (std::abs(phi3 - phi2) > std::abs(phi3) * 0.01) {
-				m += 2.0 * std::abs(phi3 - phi2) / pow(get_d(), 2);
+				m += 2.0 * std::abs(phi3 - phi2) / std::pow(get_d(), 2);
 				recalc = true;
 				continue;
 			}
@@ -265,11 +268,11 @@ void One_Dimensional_AGMND::check_supposed_x() {
 
 	old_M_Max = M_Max;
 	for (reset(); right_point != points->end(); go_Next_Interval()) {
-		a = 0.25 * pow((*right_point).first[curr_dim] - (*left_point).first[curr_dim], 2);
+		a = 0.25 * std::pow((*right_point).first[curr_dim] - (*left_point).first[curr_dim], 2);
 		b = -(*right_point).second.z + (*left_point).second.z + 0.5 *
 			((*right_point).second.num_estimation + (*left_point).second.num_estimation) *
 			((*right_point).first[curr_dim] - (*left_point).first[curr_dim]);
-		c = -pow((*right_point).second.num_estimation - (*left_point).second.num_estimation, 2) / 4;
+		c = -std::pow((*right_point).second.num_estimation - (*left_point).second.num_estimation, 2) / 4;
 		D = b * b - 4 * a*c;
 		if (D > 0) {
 			tmp_x1 = (-b - sqrt(D)) / (2 * a);
@@ -411,7 +414,16 @@ result One_Dimensional_AGMND::solve_mpi() {
 			std::vector<double> result(threadsNum);
 
 			new_m = get_m();
-			compute_R(curr_x, new_m);
+			
+			if(pq->size() == threadsNum)
+					compute_R(curr_x, new_m);
+			else {
+				for (int i = 0; i < threadsNum; ++i) {
+					curr_x[curr_dim] = last_coord[i];
+					compute_R(curr_x, new_m);
+				}
+			}
+
 			for (int i = 0; i < threadsNum; ++i) {
 				last_coord[i] = get_new_point(pq->top()); 
 				pq->pop();
@@ -447,6 +459,8 @@ result One_Dimensional_AGMND::solve_mpi() {
 
 result One_Dimensional_AGMND::solve_seq() {
 	//eps *= b - a;
+	std::vector<double> last_coord(threadsNum);
+	std::vector<double> result(threadsNum);
 	std::pair<double, double> new_point;
 	double new_m;
 	interval search_interval;
@@ -460,7 +474,7 @@ result One_Dimensional_AGMND::solve_seq() {
 
 	while (!isEnd()) {
 		if (!useThreads ||
-			useThreads && (points->size() < threadsNum + 1)) {
+			useThreads && (pq->size() < threadsNum)) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			search_interval = pq->top(); 
@@ -474,11 +488,17 @@ result One_Dimensional_AGMND::solve_seq() {
 			compare_interval_len(curr_x);
 			compare_M(curr_x);
 		} else {
-			std::vector<double> last_coord(threadsNum);
-			std::vector<double> result(threadsNum);
-
 			new_m = get_m();
-			compute_R(curr_x, new_m);
+
+			if(pq->size() == threadsNum)
+					compute_R(curr_x, new_m);
+				else {
+					for (int i = 0; i < threadsNum; ++i) {
+						curr_x[curr_dim] = last_coord[i];
+						compute_R(curr_x, new_m);
+					}
+				}
+
 			for (int i = 0; i < threadsNum; ++i) {
 				last_coord[i] = get_new_point(pq->top()); 
 				pq->pop();

@@ -26,7 +26,7 @@ double One_Dimensional_AGP::get_m() {
     } else if (M_Max == 0) {
         return 1;
     } else {
-        throw - 1;
+        throw std::runtime_error ("One_Dimensional_AGP::get_m");
     }
 }
 
@@ -380,7 +380,16 @@ result One_Dimensional_AGP::solve_mpi() {
 			std::vector<double> result(threadsNum);
 
 			new_m = get_m();
-			compute_R(curr_x, new_m);
+			
+			if(pq->size() == threadsNum)
+					compute_R(curr_x, new_m);
+			else {
+				for (int i = 0; i < threadsNum; ++i) {
+					curr_x[curr_dim] = last_coord[i];
+					compute_R(curr_x, new_m);
+				}
+			}
+			
 			for (int i = 0; i < threadsNum; ++i) {
 				last_coord[i] = get_new_point(pq->top());
 				pq->pop();
@@ -449,6 +458,8 @@ result One_Dimensional_AGP::solve_mpi() {
 }
 
 result One_Dimensional_AGP::solve_seq() {
+	std::vector<double> last_coord(threadsNum);
+	std::vector<double> shared_result(threadsNum);
 	result tmp_res;
 	if (curr_dim == 0) {
 		for (int i = 0; i < range; ++i)
@@ -463,28 +474,36 @@ result One_Dimensional_AGP::solve_seq() {
 		pth = new std::thread[threadsNum];
 
 	perform_first_iteration();
+	
 	while (!isEnd()) {
 		if (curr_dim == range - 1
-			&& points->size() >= threadsNum + 1
+			&& pq->size() >= threadsNum
 			&& useThreads) {
-				std::vector<double> last_coord(threadsNum);
-				std::vector<double> result(threadsNum);
-
 				new_m = get_m();
-				compute_R(curr_x, new_m);
+
+				if(pq->size() == threadsNum)
+					compute_R(curr_x, new_m);
+				else {
+					for (int i = 0; i < threadsNum; ++i) {
+						curr_x[curr_dim] = last_coord[i];
+						compute_R(curr_x, new_m);
+					}
+				}
+				
 				for (int i = 0; i < threadsNum; ++i) {
 					last_coord[i] = get_new_point(pq->top());
+					int s = pq->size();
 					pq->pop();
 				}
 					
 
 				for (int i = 1; i < threadsNum; ++i)
 					pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
-						last_coord[i], std::ref(result), i);
-				do_parallel_job(last_coord[0], result, 0);
+						last_coord[i], std::ref(shared_result), i);
+				do_parallel_job(last_coord[0], shared_result, 0);
 
 				curr_x[curr_dim] = last_coord[0];
-				insert_to_map(curr_x, result[0], 0);
+				insert_to_map(curr_x, shared_result[0], 0);
 				compare_interval_len(curr_x);
 				compare_M(curr_x);
 
@@ -492,7 +511,7 @@ result One_Dimensional_AGP::solve_seq() {
 					pth[i].join();
 
 					curr_x[curr_dim] = last_coord[i];
-					insert_to_map(curr_x, result[i], 0);
+					insert_to_map(curr_x, shared_result[i], 0);
 					compare_interval_len(curr_x);
 					compare_M(curr_x);
 				}
