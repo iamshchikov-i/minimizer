@@ -66,11 +66,11 @@ std::map<std::string, ResultInfo*> resultsInfo;
 
 int procrank = -1, procnum = -1;
 
-int dims = 2;
+int dims = 1;
 double epsPar = 0.001, rPar = 5.5; int Nmax = 100000000;
 double epsErr = 0.01;
 bool useMPI = false;
-bool useThreads = false; int threadsNum = 1;
+bool useThreads = true; int threadsNum = 2;
 
 Task_type task_type;
 
@@ -106,8 +106,8 @@ void execGKLS(int argc, char **argv) {
 	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
 
 	for (int j = 0; j < taskNumber; ++j) {
-		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
-			epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
+		//execExperiment(dims, j, useMPI, useThreads, threadsNum, 
+			//epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
 			epsPar, rPar, Nmax, Upper_method::AGMND, epsErr);
 	}
@@ -121,12 +121,6 @@ void execGKLS(int argc, char **argv) {
 
 void execHans(int argc, char **argv) {
 	int procrank = -1, procnum = -1;
-
-	int dims = 2;
-	double epsPar = 0.001, rPar = 5.5; int Nmax = 100000000;
-	double epsErr = 0.01;
-	bool useMPI = false;
-	bool useThreads = false; int threadsNum = 1;
 
 	parseArguments(argc, argv, dims, epsPar, rPar, Nmax, epsErr, 
 		useMPI, useThreads, threadsNum);
@@ -142,8 +136,8 @@ void execHans(int argc, char **argv) {
 	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
 
 	for (int j = 0; j < taskNumber; ++j) {
-		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
-			epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
+		//execExperiment(dims, j, useMPI, useThreads, threadsNum, 
+			//epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
 			epsPar, rPar, Nmax, Upper_method::AGMND, epsErr);
 	}

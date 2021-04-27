@@ -464,6 +464,10 @@ result One_Dimensional_AGMND::solve_seq() {
 	std::pair<double, double> new_point;
 	double new_m;
 	interval search_interval;
+	int tmp_threadsNum = threadsNum;
+
+	//const char* pit = std::getenv("PRIMARY_ITERATIONS_TYPE");
+	std::string pit = "involve";
 
 	std::thread *pth;
 	if(curr_dim == range - 1
@@ -474,7 +478,7 @@ result One_Dimensional_AGMND::solve_seq() {
 
 	while (!isEnd()) {
 		if (!useThreads ||
-			useThreads && (pq->size() < threadsNum)) {
+			pit == "" && pq->size() < threadsNum) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			search_interval = pq->top(); 
@@ -490,21 +494,37 @@ result One_Dimensional_AGMND::solve_seq() {
 		} else {
 			new_m = get_m();
 
-			if(pq->size() == threadsNum)
+			if(pq->size() <= tmp_threadsNum)
 					compute_R(curr_x, new_m);
-				else {
-					for (int i = 0; i < threadsNum; ++i) {
-						curr_x[curr_dim] = last_coord[i];
-						compute_R(curr_x, new_m);
-					}
+			else {
+				for (int i = 0; i < tmp_threadsNum; ++i) {
+					curr_x[curr_dim] = last_coord[i];
+					compute_R(curr_x, new_m);
 				}
-
-			for (int i = 0; i < threadsNum; ++i) {
-				last_coord[i] = get_new_point(pq->top()); 
-				pq->pop();
 			}
 
-			for (int i = 1; i < threadsNum; ++i)
+			if (pit == "separate" && pq->size() == 1) {
+				for (int i = 0; i < threadsNum; ++i) {
+					double delta = (bounds.front().second - bounds.front().first) / (threadsNum + 1);
+					last_coord[i] = bounds.front().first + delta * (i + 1);
+				}
+			}
+			else {
+				if (pit == "involve") {
+					if (pq->size() < threadsNum)
+						tmp_threadsNum = pq->size();
+					else {
+						tmp_threadsNum = threadsNum;
+						pit = "";
+					}
+				}
+				for (int i = 0; i < tmp_threadsNum; ++i) {
+					last_coord[i] = get_new_point(pq->top());
+					pq->pop();
+				}
+			}
+
+			for (int i = 1; i < tmp_threadsNum; ++i)
 				pth[i] = std::thread(&One_Dimensional_AGMND::do_parallel_job, this,
 					last_coord[i], std::ref(result), i);
 			do_parallel_job(last_coord[0], result, 0);
@@ -515,7 +535,7 @@ result One_Dimensional_AGMND::solve_seq() {
 			compare_interval_len(curr_x);
 			compare_M(curr_x);
 
-			for (int i = 1; i < threadsNum; ++i) {
+			for (int i = 1; i < tmp_threadsNum; ++i) {
 				pth[i].join();
 
 				curr_x[curr_dim] = last_coord[i];
