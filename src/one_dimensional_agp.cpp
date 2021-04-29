@@ -461,12 +461,25 @@ result One_Dimensional_AGP::solve_seq() {
 	std::vector<double> last_coord(threadsNum);
 	std::vector<double> shared_result(threadsNum);
 	result tmp_res;
+	int tmp_threadsNum = threadsNum;
 	if (curr_dim == 0) {
 		for (int i = 0; i < range; ++i)
 			curr_x[i] = bounds[i].first;
 	}
 	std::pair<double, double> new_point;
 	double new_m;
+
+	const char* env_p;
+	std::string pit;
+
+	if(useThreads) {
+		env_p = std::getenv("PRIMARY_ITERATIONS_TYPE");
+
+		if(env_p == nullptr)
+			pit = "none";
+		else
+			pit = env_p;
+	}
 
 	std::thread *pth;
 	if(curr_dim == range - 1
@@ -476,28 +489,70 @@ result One_Dimensional_AGP::solve_seq() {
 	perform_first_iteration();
 	
 	while (!isEnd()) {
-		if (curr_dim == range - 1
-			&& pq->size() >= threadsNum
-			&& useThreads) {
+		if(curr_dim == range - 1) {
+			if (!useThreads ||
+			pit == "none" && points->size() <= threadsNum) {
+				new_m = get_m();
+				compute_R(curr_x, new_m);
+				new_point.first = get_new_point(pq->top()); 
+				pq->pop();
+				curr_x[curr_dim] = new_point.first;
+
+				tmp_res.coords = curr_x;
+				tmp_res.z = (*function)(curr_x);
+
+				curr_x = tmp_res.coords;
+				insert_to_map(tmp_res.coords, tmp_res.z, 0);
+				compare_interval_len(curr_x);
+				compare_M(curr_x);
+
+			} else {
 				new_m = get_m();
 
-				if(pq->size() == threadsNum)
-					compute_R(curr_x, new_m);
-				else {
-					for (int i = 0; i < threadsNum; ++i) {
-						curr_x[curr_dim] = last_coord[i];
+				if(pit == "involve") {
+					if(tmp_threadsNum == threadsNum
+						|| tmp_threadsNum == 1)
 						compute_R(curr_x, new_m);
+					else {
+						for (int i = 0; i < tmp_threadsNum; ++i) {
+							curr_x[curr_dim] = last_coord[i];
+							compute_R(curr_x, new_m);
+						}
+					}
+				} else {
+					if(points->size() <= tmp_threadsNum + 1)
+						compute_R(curr_x, new_m);
+					else {
+						for (int i = 0; i < tmp_threadsNum; ++i) {
+							curr_x[curr_dim] = last_coord[i];
+							compute_R(curr_x, new_m);
+						}
 					}
 				}
 				
-				for (int i = 0; i < threadsNum; ++i) {
-					last_coord[i] = get_new_point(pq->top());
-					int s = pq->size();
+				if (pit == "separate" && pq->size() == 1) {
+					for (int i = 0; i < threadsNum; ++i) {
+						double delta = (bounds.front().second - bounds.front().first) / (threadsNum + 1);
+						last_coord[i] = bounds.front().first + delta * (i + 1);
+					}
 					pq->pop();
 				}
+				else {
+					if (pit == "involve") {
+						if (pq->size() < threadsNum)
+							tmp_threadsNum = pq->size();
+						else {
+							tmp_threadsNum = threadsNum;
+							pit = "none";
+						}
+					}
+					for (int i = 0; i < tmp_threadsNum; ++i) {
+						last_coord[i] = get_new_point(pq->top());
+						pq->pop();
+					}
+				}
 					
-
-				for (int i = 1; i < threadsNum; ++i)
+				for (int i = 1; i < tmp_threadsNum; ++i)
 					pth[i] = std::thread(&One_Dimensional_AGP::do_parallel_job, this,
 						last_coord[i], std::ref(shared_result), i);
 				do_parallel_job(last_coord[0], shared_result, 0);
@@ -507,7 +562,7 @@ result One_Dimensional_AGP::solve_seq() {
 				compare_interval_len(curr_x);
 				compare_M(curr_x);
 
-				for (int i = 1; i < threadsNum; ++i) {
+				for (int i = 1; i < tmp_threadsNum; ++i) {
 					pth[i].join();
 
 					curr_x[curr_dim] = last_coord[i];
@@ -515,26 +570,23 @@ result One_Dimensional_AGP::solve_seq() {
 					compare_interval_len(curr_x);
 					compare_M(curr_x);
 				}
+			}
 		} else {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			new_point.first = get_new_point(pq->top()); 
 			pq->pop();
 			curr_x[curr_dim] = new_point.first;
-			if (curr_dim != range - 1) {
-				odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
-					useMPI, useThreads, threadsNum,
-					function, eps, Nmax, r_p);
-				odm[curr_dim + 1]->solve_seq();
-				tmp_res = odm[curr_dim + 1]->get_result();
+			
+			odm[curr_dim + 1]->set_experiment(range, curr_dim + 1, odm, bounds, curr_x,
+				useMPI, useThreads, threadsNum,
+				function, eps, Nmax, r_p);
+			odm[curr_dim + 1]->solve_seq();
+			tmp_res = odm[curr_dim + 1]->get_result();
 
-				for (int i = curr_dim + 1; i < range; ++i)
-					res.k[i] += tmp_res.k[i];
-			} else {
-				tmp_res.coords = curr_x;
-				tmp_res.z = (*function)(curr_x);
-			}
-
+			for (int i = curr_dim + 1; i < range; ++i)
+				res.k[i] += tmp_res.k[i];
+			
 			curr_x = tmp_res.coords;
 			insert_to_map(tmp_res.coords, tmp_res.z, 0);
 			compare_interval_len(curr_x);

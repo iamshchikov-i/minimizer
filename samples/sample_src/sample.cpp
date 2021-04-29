@@ -136,8 +136,8 @@ void execHans(int argc, char **argv) {
 	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
 
 	for (int j = 0; j < taskNumber; ++j) {
-		//execExperiment(dims, j, useMPI, useThreads, threadsNum, 
-			//epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
+		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
+			epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
 			epsPar, rPar, Nmax, Upper_method::AGMND, epsErr);
 	}

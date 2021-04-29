@@ -465,9 +465,18 @@ result One_Dimensional_AGMND::solve_seq() {
 	double new_m;
 	interval search_interval;
 	int tmp_threadsNum = threadsNum;
+	const char* env_p;
+	std::string pit;
 
-	//const char* pit = std::getenv("PRIMARY_ITERATIONS_TYPE");
-	std::string pit = "involve";
+	if(useThreads) {
+		env_p = std::getenv("PRIMARY_ITERATIONS_TYPE");
+
+		if(env_p == nullptr)
+			pit = "none";
+		else
+			pit = env_p;
+	}
+	
 
 	std::thread *pth;
 	if(curr_dim == range - 1
@@ -478,7 +487,7 @@ result One_Dimensional_AGMND::solve_seq() {
 
 	while (!isEnd()) {
 		if (!useThreads ||
-			pit == "" && pq->size() < threadsNum) {
+			pit == "none" && points->size() <= threadsNum) {
 			new_m = get_m();
 			compute_R(curr_x, new_m);
 			search_interval = pq->top(); 
@@ -494,12 +503,24 @@ result One_Dimensional_AGMND::solve_seq() {
 		} else {
 			new_m = get_m();
 
-			if(pq->size() <= tmp_threadsNum)
+			if(pit == "involve") {
+				if(tmp_threadsNum == threadsNum
+					|| tmp_threadsNum == 1)
 					compute_R(curr_x, new_m);
-			else {
-				for (int i = 0; i < tmp_threadsNum; ++i) {
-					curr_x[curr_dim] = last_coord[i];
+				else {
+					for (int i = 0; i < tmp_threadsNum; ++i) {
+						curr_x[curr_dim] = last_coord[i];
+						compute_R(curr_x, new_m);
+					}
+				}
+			} else {
+				if(points->size() <= tmp_threadsNum + 1)
 					compute_R(curr_x, new_m);
+				else {
+					for (int i = 0; i < tmp_threadsNum; ++i) {
+						curr_x[curr_dim] = last_coord[i];
+						compute_R(curr_x, new_m);
+					}
 				}
 			}
 
@@ -508,6 +529,7 @@ result One_Dimensional_AGMND::solve_seq() {
 					double delta = (bounds.front().second - bounds.front().first) / (threadsNum + 1);
 					last_coord[i] = bounds.front().first + delta * (i + 1);
 				}
+				pq->pop();
 			}
 			else {
 				if (pit == "involve") {
@@ -515,7 +537,7 @@ result One_Dimensional_AGMND::solve_seq() {
 						tmp_threadsNum = pq->size();
 					else {
 						tmp_threadsNum = threadsNum;
-						pit = "";
+						pit = "none";
 					}
 				}
 				for (int i = 0; i < tmp_threadsNum; ++i) {
