@@ -70,7 +70,7 @@ int dims = 1;
 double epsPar = 0.001, rPar = 5.5; int Nmax = 100000000;
 double epsErr = 0.01;
 bool useMPI = false;
-bool useThreads = true; int threadsNum = 2;
+bool useThreads = false; int threadsNum = 2;
 
 Task_type task_type;
 
