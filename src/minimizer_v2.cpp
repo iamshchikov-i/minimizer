@@ -40,12 +40,12 @@ void Minimizer_v2::reset() {
 }
 
 double Minimizer_v2::get_M() {
-	return abs(((*right_point).second.y - (*left_point).second.y) / ((*right_point).first - (*left_point).first));
+	return std::abs(((*right_point).second.y - (*left_point).second.y) / ((*right_point).first - (*left_point).first));
 }
 
 double Minimizer_v2::get_R() {
 	double tmp = m * ((*right_point).first - (*left_point).first);
-	return tmp + (pow((*right_point).second.y - (*left_point).second.y, 2) / tmp) - 2 * ((*right_point).second.y + (*left_point).second.y);
+	return tmp + (std::pow((*right_point).second.y - (*left_point).second.y, 2) / tmp) - 2 * ((*right_point).second.y + (*left_point).second.y);
 }
 
 void Minimizer_v2::calculate_R(double new_point, double new_m) {

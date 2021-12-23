@@ -12,7 +12,7 @@ bool Minimizer_v1::stop1() {
 
 bool Minimizer_v1::stop2() {
 	for (reset(); r != values->end(); go_Next_Interval())
-		if (abs((*r).first - (*l).first) <= eps)
+		if (std::abs((*r).first - (*l).first) <= eps)
 			return true;
 	return false;
 }
@@ -27,7 +27,7 @@ void Minimizer_v1::go_Next_Interval() {
 }
 
 double Minimizer_v1::get_M() {
-	return abs(((*r).second - (*l).second) / ((*r).first - (*l).first));
+	return std::abs(((*r).second - (*l).second) / ((*r).first - (*l).first));
 }
 
 double Minimizer_v1::get_M_Max() {
@@ -46,7 +46,7 @@ double Minimizer_v1::get_M_Max() {
 
 double Minimizer_v1::get_R(double m) {
 	double tmp = m * ((*r).first - (*l).first);
-	return tmp + (pow((*r).second - (*l).second, 2) / tmp) - 2 * ((*r).second + (*l).second);
+	return tmp + (std::pow((*r).second - (*l).second, 2) / tmp) - 2 * ((*r).second + (*l).second);
 }
 
 bool Minimizer_v1::isEnd() {
@@ -90,6 +90,7 @@ double Minimizer_v1::get_new_point(std::pair<double, double> p, double m) {
 double Minimizer_v1::find_point() {
 	std::pair<double, double> new_point;
 	double _min, res;
+	double new_m = 0;
 
 	//1я итерация
 	values->insert(std::pair<double, double>(a, (*function)(a)));
@@ -105,11 +106,12 @@ double Minimizer_v1::find_point() {
 	k = 2;
 
 	while (!isEnd()) {
-		m = get_m();
+		new_m = get_m();
 		new_point.first = get_new_point(find_R_Max(m), m); 
 		new_point.second = (*function)(new_point.first); 
 		values->insert(new_point); 
-		k++; 
+		k++;
+		printf("k = %d\n", k);
 		if (new_point.second <= _min)
 			res = new_point.first;
 	}
