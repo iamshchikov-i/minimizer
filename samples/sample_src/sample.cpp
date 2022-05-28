@@ -42,12 +42,14 @@ int i;
 TGKLSProblemFamily* gklsFamGlob;
 
 double f_gkls(std::vector<double> coords) {
-	double delta = load();
+	//double delta = load();
+	double delta = 0.0;
 	return delta + gklsFamGlob->operator[](i)->ComputeFunction(coords) - delta;
 }
 
 double f_hans(std::vector<double> coords) {
-	double delta = load();
+	//double delta = load();
+	double delta = 0.0;
 	return delta + pfn[i](coords[0]) - delta;
 }
 
@@ -104,12 +106,12 @@ void execGKLS(int argc, char **argv) {
 	int taskNumber = gklsFamGlob->GetFamilySize();
 	resultsInfo.insert({ "AGP", &resInfoAgp });
 	resultsInfo.insert({ "AGMND", &resInfoAgmnd });
-
+	
 	for (int j = 0; j < taskNumber; ++j) {
-		//execExperiment(dims, j, useMPI, useThreads, threadsNum, 
-			//epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
 		execExperiment(dims, j, useMPI, useThreads, threadsNum, 
-			epsPar, rPar, Nmax, Upper_method::AGMND, epsErr);
+			epsPar, rPar, Nmax, Upper_method::AGP, epsErr);
+		/*execExperiment(dims, j, useMPI, useThreads, threadsNum, 
+			epsPar, rPar, Nmax, Upper_method::AGMND, epsErr);*/
 	}
 	
 	if (useMPI) {
@@ -184,10 +186,10 @@ void execExperiment(int dims,
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
 	
-	Multi_Dimensional_Minimizer mdm(dims, lower_bound, upper_bound, f_hans,
+	Multi_Dimensional_Minimizer mdm(dims, lower_bound, upper_bound, f_gkls,
 		useMPI, useThreads, threadsNum,
 		um, eps_par, Nmax, r_par);
-
+	
 	if (!useMPI || procrank == 0)
 		begin = std::chrono::steady_clock::now();
 	result = mdm.solve();
@@ -222,7 +224,7 @@ void execExperiment(int dims,
 				res |= check_result_coords(result.coords, vec_coord, eps);
 			}
 		
-			if(std::abs(f_hans(actual_res) - result.z) <= eps)
+			if(std::abs(f_gkls(actual_res) - result.z) <= eps)
 				res = true;
 		} else throw std::runtime_error ("Inappropriate type of the task!");
 
